@@ -78,14 +78,14 @@ public class AuthController {
     }
 
 
-//    @PostMapping("/refresh")
-//    public ResponseEntity<TokenResponse> refresh(@RequestBody Map<String, String> body) {
-//        return ResponseEntity.ok(authService.refresh(body.get("refreshToken")));
-//    }
-//
-//    @PostMapping("/revoke")
-//    public ResponseEntity<?> revoke(@RequestBody Map<String, String> body) {
-//        authService.revokeRefreshToken(body.get("refreshToken"));
-//        return ResponseEntity.ok(Map.of("revoked", true));
-//    }
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(authService.refresh(body.get("refreshToken")));
+    }
+
+    @PostMapping("/revoke")
+    public ResponseEntity<?> revoke(@RequestBody Map<String, String> body) {
+        authService.revokeRefreshToken(body.get("refreshToken"));
+        return ResponseEntity.ok(Map.of("revoked", true));
+    }
 }

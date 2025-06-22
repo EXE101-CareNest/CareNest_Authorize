@@ -41,8 +41,8 @@ public class GlobalSuccessWrapper implements ResponseBodyAdvice<Object> {
 
         return !returnType.hasMethodAnnotation(SkipWrap.class)
             && !returnType.getDeclaringClass().isAnnotationPresent(SkipWrap.class)
-            && !returnType.getParameterType().equals(BaseResponse.class)
-            && !returnType.getParameterType().equals(ResponseEntity.class);
+            && !returnType.getParameterType().equals(BaseResponse.class);
+//            && !returnType.getParameterType().equals(ResponseEntity.class);
     }
 
     @Override
