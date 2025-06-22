@@ -4,6 +4,19 @@ spring:
   profiles:
     active: local
 
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # URL của Eureka Server
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+    hostname: localhost
+
     #Redis Config
   data:
     redis:
@@ -17,9 +30,11 @@ spring:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:postgresql://localhost:5433/authorize_db
-    username: authorize_user
-    password: authorize_password
+#    url: jdbc:postgresql://103.252.95.124:5432/carenest_authoie_service
+    url: jdbc:postgresql://localhost:5439/carenest_authoie_service
+
+    username: nghi
+    password: PasswordProkVIp2@43
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -70,7 +85,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info, prometheus
+
   endpoint:
     health:
       show-details: always
