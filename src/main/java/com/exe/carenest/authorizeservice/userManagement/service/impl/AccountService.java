@@ -1,13 +1,11 @@
 package com.exe.carenest.authorizeservice.userManagement.service.impl;
 
-import com.exe.carenest.authorizeservice.authManagement.model.Role;
+
+import com.exe.carenest.authorizeservice.authManagement.model.Roles;
 import com.exe.carenest.authorizeservice.infrastructure.exception.ApiException;
 import com.exe.carenest.authorizeservice.authManagement.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.authManagement.dto.request.RegisterRequest;
 import com.exe.carenest.authorizeservice.authManagement.model.Account;
-import com.exe.carenest.authorizeservice.userManagement.model.Customer;
-import com.exe.carenest.authorizeservice.userManagement.model.Shop;
-import com.exe.carenest.authorizeservice.userManagement.model.Staff;
 import com.exe.carenest.authorizeservice.userManagement.repository.UserRepository;
 import com.exe.carenest.authorizeservice.userManagement.service.IAccountService;
 import com.exe.carenest.authorizeservice.ultil.UserMapper;
@@ -30,38 +28,33 @@ public class AccountService implements IAccountService {
             throw new ApiException("USER_EXISTS", "Username already exists", 400);
         }
 
-        Account account = switch (registerRequest.role()) {
-            case ROLE_SHOP -> new Shop();
-            case ROLE_CUSTOMER -> new Customer();
-            case ROLE_STAFF -> new Staff();
-            default -> throw new ApiException("INVALID_ROLE", "Invalid role specified", 400);
-        };
+        Account account = new Account();
 
         account.setUsername(registerRequest.username());
         account.setPassword(passwordEncoder.encode(registerRequest.password()));
-        account.setRole(registerRequest.role());
+        account.setRole(Roles.ROLE_USER);
         account.set_active(true);
         userRepository.save(account);
     }
 
     @Override
-    public void assignRole(Long id, Role role) {
-        Account staff = userRepository.findById(id)
-                .orElseThrow(() -> new ApiException("STAFF_NOT_FOUND", "Staff not found", 404));
-        staff.setRole(role);
-        userRepository.save(staff);
+    public void assignRole(Long id, Roles role) {
+        Account acc = userRepository.findById(id)
+                .orElseThrow(() -> new ApiException("ACCOUNT_NOT_FOUND", "Account not found", 404));
+        acc.setRole(role);
+        userRepository.save(acc);
     }
-//    @Override
-//    public Account findByUsername(String username) {
-//        return userRepository.findByUsername(username)
-//                .orElseThrow(() -> new ApiException("USER_NOT_FOUND", "User not found", 404));
-//    }
 
     @Override
     public AccountResponse findByUsernameResponse(String username) {
         Account account = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException("USER_NOT_FOUND", "User not found", 404));
         return UserMapper.toAccountResponse(account);
+    }
+
+    @Override
+    public Account findByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> new ApiException("USER_NOT_FOUND", "User not found", 404));
     }
 
     @Override

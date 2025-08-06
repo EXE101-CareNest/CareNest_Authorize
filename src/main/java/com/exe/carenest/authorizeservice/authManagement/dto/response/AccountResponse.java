@@ -1,6 +1,6 @@
 package com.exe.carenest.authorizeservice.authManagement.dto.response;
 
-import com.exe.carenest.authorizeservice.authManagement.model.Role;
+import com.exe.carenest.authorizeservice.authManagement.model.Roles;
 import lombok.Builder;
 
 
@@ -9,6 +9,6 @@ public record AccountResponse(
         Long id,
         String username,
         String email,
-        Role role,
+        Roles role,
         boolean isActive
 ) {}

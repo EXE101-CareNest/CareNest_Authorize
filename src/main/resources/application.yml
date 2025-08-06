@@ -46,7 +46,7 @@ spring:
         format_sql: true
 
 jwt:
-  secret: O71G8n+dl8x+3W0Ik0u4D3HVz6YsUuvT3jipA9Xs3Pg=
+  secret: CA39C3A2A3D4654A764C8E724CB37114CF68D80A34057F06641A31E0A0A3BA86
 
 server:
   port: 8082

@@ -10,4 +10,6 @@ public interface IShopService {
     ShopResponse updateShop(Long id, ShopUpdateRequest request);
     void deleteShop(Long id);
     List<ShopResponse> getAllShops();
+
+    boolean shopLogin(String shopName,String password);
 }

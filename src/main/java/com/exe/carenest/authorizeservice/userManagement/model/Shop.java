@@ -1,9 +1,9 @@
 package com.exe.carenest.authorizeservice.userManagement.model;
 
 import com.exe.carenest.authorizeservice.authManagement.model.Account;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -11,33 +11,24 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "shop")
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Shop extends Account {
+public class Shop {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @NotNull
+    @Size(min = 1, max = 50)
     private String shopName;
 
-    @Column(name = "description")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Account owner;
+
     private String description;
 
-    private String phone;
-
-    @Column(name = "status")
-    private String status;
-
-    @Column(name = "bank_name")
-    private String bankName;
-
-    @Column(name = "bank_num")
-    private String bankNum;
-
-    @Column(name = "working_day")
-    private String workingDay;
-
-    @Column(name = "hotline")
-    private String hotline;
-
-    @Column(name = "identity_card")
-    private String identityCard;
+    private String password; //Password riêng cho cửa hàng khi đăng nhập dashboard
+    private boolean status;
+    private String imgUrl;
+    private String workingDays;
 }

@@ -2,10 +2,13 @@ package com.exe.carenest.authorizeservice.infrastructure.data;
 
 
 import com.exe.carenest.authorizeservice.authManagement.model.Account;
-import com.exe.carenest.authorizeservice.authManagement.model.Role;
-import com.exe.carenest.authorizeservice.userManagement.model.Customer;
+
+import com.exe.carenest.authorizeservice.authManagement.model.Roles;
+import com.exe.carenest.authorizeservice.authManagement.model.ShopRole;
+import com.exe.carenest.authorizeservice.authManagement.repository.RoleRepository;
+import com.exe.carenest.authorizeservice.authManagement.repository.ShopRoleRepository;
 import com.exe.carenest.authorizeservice.userManagement.model.Shop;
-import com.exe.carenest.authorizeservice.userManagement.model.Staff;
+import com.exe.carenest.authorizeservice.userManagement.repository.ShopRepository;
 import com.exe.carenest.authorizeservice.userManagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -24,71 +28,77 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final ShopRepository shopRepository;
+    private final ShopRoleRepository roleRepository;
     @Override
     public void run(String... args) throws Exception {
-        if (!userRepository.findByUsername("admin").isPresent()) {
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            ShopRole shopRole = new ShopRole();
+            shopRole.setName("OWNER");
+            roleRepository.save(shopRole);
+
+            ShopRole shopRole2 = new ShopRole();
+            shopRole2.setName("STAFF");
+            roleRepository.save(shopRole2);
+
             createAdminAccount();
-            createTestAccounts();
+            createShopAccounts();
+            createShopOwner(shopRole);
+            createShopStaff(shopRole2);
             log.info("Development test accounts created!");
+        } else {
+            log.info("Test accounts already exist, skipping seeding.");
         }
     }
 
     private void createAdminAccount() {
         Account admin = new Account();
         admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("admin123"));
+        admin.setPassword(passwordEncoder.encode("@1"));
         admin.setEmail("admin@carenest.com");
-        admin.setRole(Role.ROLE_ADMIN);
+        admin.setRole(Roles.ROLE_ADMIN);
         admin.set_active(true);
         userRepository.save(admin);
-        log.info("Admin account created: admin/admin123");
+        log.info("Admin account created: admin/@1");
     }
 
-    private void createTestAccounts() {
+
+
+    private void createShopOwner(ShopRole role) {
+        Account user = new Account();
+        user.setUsername("shopOwner");
+        user.setPassword(passwordEncoder.encode("@1"));
+        user.setEmail("shopOwner@carenest.com");
+        user.setShopRole(role);
+        user.setRole(Roles.ROLE_USER);
+        user.set_active(true);
+        userRepository.save(user);
+        log.info("user account created: shopOwner/@1");
+    }
+
+    private void createShopStaff(ShopRole role) {
+        Account user = new Account();
+        user.setUsername("shopStaff");
+        user.setPassword(passwordEncoder.encode("@1"));
+        user.setEmail("shopStaff@carenest.com");
+        user.setShopRole(role);
+        user.setRole(Roles.ROLE_USER);
+        user.set_active(true);
+        userRepository.save(user);
+        log.info("User account created: shopStaff/@1");
+    }
+    private void createShopAccounts() {
         // Test Shop
         Shop testShop = new Shop();
-        testShop.setUsername("testshop");
         testShop.setPassword(passwordEncoder.encode("test123"));
-        testShop.setEmail("testshop@carenest.com");
-        testShop.setRole(Role.ROLE_SHOP);
-        testShop.set_active(true);
         testShop.setShopName("Test Pet Shop");
-        testShop.setPhone("0900000001");
+
+        Optional<Account> account = userRepository.findById(1L);
+        testShop.setOwner(account.orElseGet(Account::new));
+        testShop.setPassword(passwordEncoder.encode("shop@1"));
+        testShop.setWorkingDays("7");
         testShop.setDescription("Shop dùng để test");
-        testShop.setStatus("ACTIVE");
-        userRepository.save(testShop);
-
-        // Test Customer
-        Customer testCustomer = new Customer();
-        testCustomer.setUsername("testcustomer");
-        testCustomer.setPassword(passwordEncoder.encode("test123"));
-        testCustomer.setEmail("testcustomer@gmail.com");
-        testCustomer.setRole(Role.ROLE_CUSTOMER);
-        testCustomer.set_active(true);
-        testCustomer.setPhone("0900000002");
-        testCustomer.setGender("Nam");
-        testCustomer.setBirthday(LocalDate.of(1990, 1, 1));
-        testCustomer.setPoint(100);
-        userRepository.save(testCustomer);
-
-        // Test Staff
-        Staff testStaff = new Staff();
-        testStaff.setUsername("teststaff");
-        testStaff.setPassword(passwordEncoder.encode("test123"));
-        testStaff.setEmail("teststaff@carenest.com");
-        testStaff.setRole(Role.ROLE_STAFF);
-        testStaff.set_active(true);
-        testStaff.setPhone("0900000003");
-        testStaff.setGender("Nữ");
-        testStaff.setBirthday(LocalDate.of(1995, 1, 1));
-        testStaff.setPosition("Tester");
-        testStaff.setShop(testShop);
-        userRepository.save(testStaff);
-
-        log.info("Test accounts created:");
-        log.info("- testshop/test123");
-        log.info("- testcustomer/test123");
-        log.info("- teststaff/test123");
+        testShop.setStatus(true);
+        shopRepository.save(testShop);
     }
 }

@@ -1,23 +1,18 @@
 package com.exe.carenest.authorizeservice.userManagement.dto.respone;
 
 
-import com.exe.carenest.authorizeservice.authManagement.model.Role;
+import com.exe.carenest.authorizeservice.authManagement.model.Roles;
 import lombok.Builder;
 
 
 @Builder
 public record ShopResponse(
         Long id,
-        String username,
-        String email,
-        Role role,
         String shopName,
+        String owner,
         String description,
-        String phone,
-        String status,
-        String bankName,
-        String bankNum,
+        boolean status,
         String workingDay,
-        String hotline,
-        String identityCard
+        String workingDays,
+        String imgUrl
 ) {}

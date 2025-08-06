@@ -1,16 +1,19 @@
 package com.exe.carenest.authorizeservice.authManagement.service.impl;
 
-import com.exe.carenest.authorizeservice.authManagement.service.IAuthService;
 import com.exe.carenest.authorizeservice.authManagement.dto.request.LoginRequest;
+import com.exe.carenest.authorizeservice.authManagement.dto.request.RegisterRequest;
 import com.exe.carenest.authorizeservice.authManagement.dto.response.TokenResponse;
 import com.exe.carenest.authorizeservice.authManagement.model.Account;
-import com.exe.carenest.authorizeservice.userManagement.repository.UserRepository;
+import com.exe.carenest.authorizeservice.authManagement.service.IAuthService;
 import com.exe.carenest.authorizeservice.infrastructure.JwtProvider;
+import com.exe.carenest.authorizeservice.userManagement.repository.UserRepository;
 import com.exe.carenest.authorizeservice.userManagement.service.impl.RedisService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
-//import org.springframework.data.redis.core.RedisTemplate;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService implements IAuthService {
 
 
@@ -32,18 +36,22 @@ public class AuthService implements IAuthService {
     private final long refreshTokenTTL = 7 * 24 * 60 * 60L; // 7 ngày
 
 
+
+
     public TokenResponse login(LoginRequest req) {
-        Account user = userRepo.findByUsername(req.username())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Account user = userRepo.findByUsername(req.username()).orElseThrow(() -> new UsernameNotFoundException(req.username()));
 
         if (!passwordEncoder.matches(req.password(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
+        log.info("Login");
+
+
         String accessToken = jwtProvider.generateToken(user);
         String refreshToken = UUID.randomUUID().toString();
 
-        redisService.save("refresh:" + refreshToken,user.getUsername(),refreshTokenTTL, TimeUnit.SECONDS);
+        redisService.save("refresh:" + refreshToken, user.getUsername(), refreshTokenTTL, TimeUnit.SECONDS);
 
         return new TokenResponse(accessToken, refreshToken);
     }
@@ -63,9 +71,8 @@ public class AuthService implements IAuthService {
         long expirationMs = claims.getExpiration().getTime() - System.currentTimeMillis();
 
         // Add token to blacklist in Redis with TTL
-        redisService.save("blacklist:" + jwtToken, "invalidated",expirationMs,TimeUnit.MILLISECONDS);
+        redisService.save("blacklist:" + jwtToken, "invalidated", expirationMs, TimeUnit.MILLISECONDS);
     }
-
 
 
     public TokenResponse refresh(String refreshToken) {

@@ -1,12 +1,15 @@
 package com.exe.carenest.authorizeservice.userManagement.repository;
 
 import com.exe.carenest.authorizeservice.authManagement.model.Account;
+import com.exe.carenest.authorizeservice.userManagement.model.Shop;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
 public interface UserRepository extends JpaRepository<Account, Long> {
+    boolean getByEmail(String email);
+
+    Optional<Account> findByEmail(String email);
+
     Optional<Account> findByUsername(String username);
 }
