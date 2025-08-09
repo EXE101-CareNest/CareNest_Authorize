@@ -88,7 +88,7 @@ public class AuthController {
         return ResponseEntity.badRequest().body("OTP is incorrect");
     }
 
-    @PostMapping("/")
+    @PostMapping("/newPassword")
     public ResponseEntity<String> resetPassword(@RequestBody NewPasswordRequest newPasswordRequest){
         if(!newPasswordRequest.password().equals(newPasswordRequest.reEnterPassword())){
             return ResponseEntity.badRequest().body("Passwords do not match");
