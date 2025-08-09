@@ -79,7 +79,7 @@ public class AccountController {
         return ResponseEntity.ok(account);
     }
 
-    @PutMapping("/{id}/password")
+    @PutMapping("/password")
     @Operation(summary = "Update account password", description = "Change password for existing account")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Password updated successfully"),
