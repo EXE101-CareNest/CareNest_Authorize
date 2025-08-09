@@ -2,6 +2,7 @@ package com.exe.carenest.authorizeservice.controller;
 
 import com.exe.carenest.authorizeservice.config.annotation.AdminOnly;
 import com.exe.carenest.authorizeservice.config.annotation.AllowAllRoles;
+import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
 import com.exe.carenest.authorizeservice.auth.model.Roles;
@@ -86,11 +87,8 @@ public class AccountController {
     })
     @AllowAllRoles
     public ResponseEntity<Void> updatePassword(
-            @Parameter(description = "Account ID", required = true, example = "1")
-            @PathVariable Long id,
-            @Parameter(description = "New password", required = true)
-            @RequestParam String newPassword) {
-        accountService.updatePassword(id, newPassword);
+            @RequestBody NewPasswordRequest newPasswordRequest) {
+        accountService.updatePassword(newPasswordRequest.email(), newPasswordRequest.password());
         return ResponseEntity.ok().build();
     }
 
