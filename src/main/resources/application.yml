@@ -1,21 +1,27 @@
+otp:
+  hmacSecret:  xkeysib-6abb7bbe2b97bfff14c1b7c275ab996c2f717a93
 spring:
   application:
     name: authorize-service
   profiles:
     active: local
 
+  brevo:
+    api:
+      key: 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
+      url: https://api.brevo.com/v3/smtp/email
 
 # Eureka Client Configuration
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/  # URL của Eureka Server
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
-    hostname: localhost
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/  # URL của Eureka Server
+#    register-with-eureka: true
+#    fetch-registry: true
+#  instance:
+#    prefer-ip-address: true
+#    instance-id: ${spring.application.name}:${server.port}
+#    hostname: localhost
 
     #Redis Config
   data:
@@ -24,8 +30,10 @@ eureka:
       host: localhost
 app:
   version: 1.0
+
 ---
 spring:
+
   config:
     activate:
       on-profile: local

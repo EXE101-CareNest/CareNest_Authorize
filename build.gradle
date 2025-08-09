@@ -36,10 +36,24 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+
+//	AMAZONE
+//    implementation platform('software.amazon.awssdk:bom:2.32.16')
+//	implementation("io.awspring.cloud:spring-cloud-aws-starter:3.4.0")
+//	implementation("io.awspring.cloud:spring-cloud-aws-autoconfigure:3.4.0")
+//	implementation("io.awspring.cloud:spring-cloud-aws-starter-dynamodb:3.4.0")
+//	implementation("io.awspring.cloud:spring-cloud-aws-dynamodb:3.4.0")
+
+    implementation 'com.google.code.gson:gson:2.10.1'
+	implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+//	implementation
 	// other dependencies...
 // Security
 //	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
