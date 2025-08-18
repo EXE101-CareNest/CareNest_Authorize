@@ -3,10 +3,14 @@ package com.exe.carenest.authorizeservice.controller;
 import com.exe.carenest.authorizeservice.config.annotation.AdminOnly;
 import com.exe.carenest.authorizeservice.config.annotation.AllowAllRoles;
 import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
+import com.exe.carenest.authorizeservice.dto.request.ShopRegistrationRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
+import com.exe.carenest.authorizeservice.dto.response.ShopResponse;
 import com.exe.carenest.authorizeservice.auth.model.Roles;
 import com.exe.carenest.authorizeservice.service.IAccountService;
+import com.exe.carenest.authorizeservice.service.IShopService;
+import com.exe.carenest.authorizeservice.service.OTPService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,18 +39,40 @@ import java.util.List;
 @Slf4j
 public class AccountController {
     private final IAccountService accountService;
-
-    @PostMapping("/register")
+    private final IShopService shopService;
+    private final OTPService otpService;
+    
+    @PostMapping("/register/customer")
     @Operation(summary = "Create new account", description = "Register a new user account with specified role")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
             @ApiResponse(responseCode = "400", description = "Username already exists or invalid role"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
-    public ResponseEntity<Void> createAccount(
+    public ResponseEntity<Void> createCustomerAccount(
             @Parameter(description = "Account registration information", required = true)
-            @Valid @RequestBody RegisterRequest request) {
-        accountService.createAccount(request);
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletResponse response) {
+        accountService.createAccount(request,Roles.ROLE_USER);
+        String otpToken = otpService.sendRegistrationOtp(request.email());
+        response.setHeader("X-Key-APT", otpToken);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/register/shop")
+    @Operation(summary = "Create new account", description = "Register a new user account with specified role")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Account created successfully"),
+            @ApiResponse(responseCode = "400", description = "Username already exists or invalid role"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
+    public ResponseEntity<Void> createShopAccount(
+            @Parameter(description = "Account registration information", required = true)
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletResponse response) {
+        accountService.createAccount(request,Roles.ROLE_SHOP);
+        String otpToken = otpService.sendRegistrationOtp(request.email());
+        response.setHeader("X-Key-APT", otpToken);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -131,5 +158,20 @@ public class AccountController {
             @RequestParam Roles role) {
         accountService.assignRole(id, role);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/shop-information")
+    @Operation(summary = "Shop registration", description = "Complete shop registration with shop information (Step 3)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Shop registered successfully"),
+            @ApiResponse(responseCode = "400", description = "eKYC not verified or invalid input"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @AllowAllRoles
+    public ResponseEntity<ShopResponse> shopRegister(
+            @Parameter(description = "Shop registration information", required = true)
+            @Valid @RequestBody ShopRegistrationRequest request) {
+        ShopResponse shopResponse = shopService.shopRegister(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(shopResponse);
     }
 }

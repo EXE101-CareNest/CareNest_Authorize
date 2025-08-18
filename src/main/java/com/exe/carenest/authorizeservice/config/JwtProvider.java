@@ -3,6 +3,7 @@ package com.exe.carenest.authorizeservice.config;
 import com.exe.carenest.authorizeservice.auth.model.Account;
 import com.exe.carenest.authorizeservice.service.impl.RedisService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor
@@ -91,5 +93,33 @@ public class JwtProvider {
     public String getRole(String token) {
         return claimToken(token)
                 .get("role", String.class);
+    }
+
+    // New method: Check if token is expired without throwing exceptions
+    public boolean isTokenExpired(String token) {
+        try {
+            Date expiration = extractExpiration(token);
+            return expiration.before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;  // If parsing throws ExpiredJwtException, it's expired
+        } catch (Exception e) {
+            return true;  // Treat other errors as expired/invalid for safety
+        }
+    }
+
+    // Helper method to extract expiration date from token
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    // Generic helper to extract any claim from token
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    // Parse all claims from the token
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJwt(token).getBody();
     }
 }

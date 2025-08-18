@@ -8,7 +8,7 @@ import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import java.util.List;
 
 public interface IAccountService {
-    void createAccount(RegisterRequest registerRequest);
+    void createAccount(RegisterRequest registerRequest,Roles role);
 //    Account findByUsername(String username);
 //    AccountResponse findByUsername(String username);
 
@@ -30,5 +30,7 @@ public interface IAccountService {
     Account getCurrentUser();
 
     void assignRole(Long id, Roles role);
+    
+    void activateAccountByEmail(String email);
 
 }

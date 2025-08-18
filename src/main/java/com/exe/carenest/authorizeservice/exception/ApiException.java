@@ -1,6 +1,10 @@
 package com.exe.carenest.authorizeservice.exception;
 
+import lombok.Getter;
+
+@Getter
 public class ApiException extends RuntimeException {
+
     private final String code;
     private final String message;
     private final String detail;
@@ -17,9 +21,4 @@ public class ApiException extends RuntimeException {
     public ApiException(String code, String message, int status) {
         this(code, message, message, status);
     }
-
-    public String getCode() { return code; }
-    public String getMessage() { return message; }
-    public String getDetail() { return detail; }
-    public int getStatus() { return status; }
 }

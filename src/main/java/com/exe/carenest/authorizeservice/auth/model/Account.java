@@ -35,6 +35,9 @@ public class Account implements UserDetails {
     @Column(name = "is_active")
     private boolean is_active;
     private boolean status;
+    
+    @Enumerated(EnumType.STRING)
+    private RegisterStatus registerStatus;
 
     @Enumerated(EnumType.STRING)
     private Roles role;
