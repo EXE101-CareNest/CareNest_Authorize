@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.exe.carenest.authorizeservice.ultil.Ultils.generateCode;
+
 @Service
 @RequiredArgsConstructor
 public class AccountService implements IAccountService {
@@ -47,6 +49,7 @@ public class AccountService implements IAccountService {
         }
 
         Account account = new Account();
+        account.setId(generateCode());
         account.setUsername(registerRequest.username());
         account.setFullName(registerRequest.fullName());
         account.setDateOfBirth(DateUtil.stringToTimestamp(registerRequest.birthday()));
@@ -85,7 +88,7 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public void assignRole(Long id, Roles role) {
+    public void assignRole(String id, Roles role) {
         Account acc = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
         acc.setRole(role);
@@ -124,7 +127,7 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public void deleteAccount(Long accountId) {
+    public void deleteAccount(String accountId) {
         Account account = userRepository.findById(accountId)
                 .orElseThrow(UserNotFoundException::new);
         account.set_active(false);
@@ -139,7 +142,7 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public AccountResponse findById(Long id) {
+    public AccountResponse findById(String id) {
         Account account = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
         return UserMapper.toAccountResponse(account);

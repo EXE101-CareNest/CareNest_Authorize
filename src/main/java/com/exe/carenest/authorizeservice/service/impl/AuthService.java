@@ -44,6 +44,10 @@ public class AuthService implements IAuthService {
             throw new PasswordException("Mật khẩu không đúng");
         }
 
+        if(!user.is_active()){
+            throw new UnauthorizedException("Tài khoàn chưa được kích hoạt");
+        }
+
         log.info("Login successful for user: {}", req.username());
 
         String accessToken = jwtProvider.generateToken(user);

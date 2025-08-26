@@ -21,15 +21,15 @@ public interface IAccountService {
 
     void updatePassword(String email, String newPassword);
 
-    void deleteAccount(Long accountId);
+    void deleteAccount(String accountId);
 
     List<AccountResponse> getAllAccounts(); // For admin hehe, oke ?
 
-    AccountResponse findById(Long id);
+    AccountResponse findById(String id);
 
     Account getCurrentUser();
 
-    void assignRole(Long id, Roles role);
+    void assignRole(String id, Roles role);
     
     void activateAccountByEmail(String email);
 

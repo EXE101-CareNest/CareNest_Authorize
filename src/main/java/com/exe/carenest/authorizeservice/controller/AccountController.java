@@ -101,7 +101,7 @@ public class AccountController {
     @AdminOnly
     public ResponseEntity<AccountResponse> getAccountById(
             @Parameter(description = "Account ID", required = true, example = "1")
-            @PathVariable Long id) {
+            @PathVariable String id) {
         AccountResponse account = accountService.findById(id);
         return ResponseEntity.ok(account);
     }
@@ -128,7 +128,7 @@ public class AccountController {
     @AllowAllRoles
     public ResponseEntity<Void> deleteAccount(
             @Parameter(description = "Account ID", required = true, example = "1")
-            @PathVariable Long id) {
+            @PathVariable String id) {
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
     }
@@ -153,7 +153,7 @@ public class AccountController {
     @AdminOnly
     public ResponseEntity<Void> assignRole(
             @Parameter(description = "Account ID", required = true, example = "1")
-            @PathVariable Long id,
+            @PathVariable String id,
             @Parameter(description = "Role to assign", required = true)
             @RequestParam Roles role) {
         accountService.assignRole(id, role);

@@ -17,8 +17,7 @@ import java.util.List;
 @Table(name = "app_user")
 public class Account implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
     private String username;
     private String fullName;
     private String password;
