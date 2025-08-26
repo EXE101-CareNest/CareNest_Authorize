@@ -6,7 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record AccountResponse(
-        Long id,
+        String id,
         String username,
         String email,
         Roles role,

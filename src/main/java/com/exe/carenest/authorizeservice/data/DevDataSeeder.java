@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+import static com.exe.carenest.authorizeservice.ultil.Ultils.generateCode;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -51,6 +53,7 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private void createAdminAccount() {
         Account admin = new Account();
+        admin.setId(generateCode());
         admin.setUsername("admin");
         admin.setPassword(passwordEncoder.encode("@1"));
         admin.setEmail("admin@carenest.com");
@@ -64,6 +67,7 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private void createShopOwner(ShopRole role) {
         Account user = new Account();
+        user.setId(generateCode());
         user.setUsername("shopOwner");
         user.setPassword(passwordEncoder.encode("@1"));
         user.setEmail("shopOwner@carenest.com");
@@ -76,6 +80,7 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private void createShopStaff(ShopRole role) {
         Account user = new Account();
+        user.setId(generateCode());
         user.setUsername("shopStaff");
         user.setPassword(passwordEncoder.encode("@1"));
         user.setEmail("shopStaff@carenest.com");
@@ -91,12 +96,12 @@ public class DevDataSeeder implements CommandLineRunner {
         testShop.setPassword(passwordEncoder.encode("test123"));
         testShop.setShopName("Test Pet Shop");
 
-        Optional<Account> account = userRepository.findById(1L);
-        testShop.setOwner(account.orElseGet(Account::new));
-        testShop.setPassword(passwordEncoder.encode("shop@1"));
-        testShop.setWorkingDays("7");
-        testShop.setDescription("Shop dùng để test");
-        testShop.setStatus(true);
-        shopRepository.save(testShop);
+//        Optional<Account> account = userRepository.findById(1L);
+//        testShop.setOwner(account.orElseGet(Account::new));
+//        testShop.setPassword(passwordEncoder.encode("shop@1"));
+//        testShop.setWorkingDays("7");
+//        testShop.setDescription("Shop dùng để test");
+//        testShop.setStatus(true);
+//        shopRepository.save(testShop);
     }
 }
