@@ -10,12 +10,12 @@ spring:
       key: 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
       url: https://api.brevo.com/v3/smtp/email
 
-  # Database Configuration
+  # Database Configuration - External PostgreSQL qua Tailscale
   datasource:
-    url: jdbc:postgresql://localhost:5439/carenest_authoie_service
-    username: nghi
-    password: PasswordProkVIp2@43
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://100.93.191.32:5432/carenest_authoie_service}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:HoiLamChi123@}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
   jpa:
     hibernate:
@@ -26,11 +26,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  # Redis Configuration
+  # Redis Configuration - Trong network
   data:
     redis:
       port: ${SPRING_REDIS_PORT:6379}
-      host: ${SPRING_REDIS_HOST:localhost}
+      host: ${SPRING_REDIS_HOST:redis}  # Container redis trong network
       timeout: 5000ms
       connect-timeout: 5000ms
       lettuce:
