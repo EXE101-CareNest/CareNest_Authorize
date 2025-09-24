@@ -1,49 +1,22 @@
 otp:
-  hmacSecret:  xkeysib-6abb7bbe2b97bfff14c1b7c275ab996c2f717a93
+  hmacSecret: xkeysib-6abb7bbe2b97bfff14c1b7c275ab996c2f717a93
+
 spring:
   application:
     name: authorize-service
-  profiles:
-    active: local
 
   brevo:
     api:
       key: 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
       url: https://api.brevo.com/v3/smtp/email
 
-# Eureka Client Configuration
-#eureka:
-#  client:
-#    service-url:
-#      defaultZone: http://localhost:8761/eureka/  # URL của Eureka Server
-#    register-with-eureka: true
-#    fetch-registry: true
-#  instance:
-#    prefer-ip-address: true
-#    instance-id: ${spring.application.name}:${server.port}
-#    hostname: localhost
-
-    #Redis Config
-  data:
-    redis:
-      port: 6379
-      host: localhost
-app:
-  version: 1.0
-
----
-spring:
-
-  config:
-    activate:
-      on-profile: local
+  # Database Configuration
   datasource:
-#    url: jdbc:postgresql://103.252.95.124:5432/carenest_authoie_service
     url: jdbc:postgresql://localhost:5439/carenest_authoie_service
-
     username: nghi
     password: PasswordProkVIp2@43
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -53,48 +26,45 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+  # Redis Configuration
+  data:
+    redis:
+      port: ${SPRING_REDIS_PORT:6379}
+      host: ${SPRING_REDIS_HOST:localhost}
+      timeout: 5000ms
+      connect-timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: 2000
+
+# JWT Configuration
 jwt:
   secret: CA39C3A2A3D4654A764C8E724CB37114CF68D80A34057F06641A31E0A0A3BA86
 
+# Server Configuration
 server:
   port: 8082
 
+# Application Configuration
+app:
+  version: 1.0
+
+# Management/Actuator Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
   endpoint:
     health:
       show-details: always
 
----
-spring:
-  config:
-    activate:
-      on-profile: docker
-  datasource:
-    url: jdbc:postgresql://authorize-db:5433/authorize_db
-    username: root
-    password: root
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-
-
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info, prometheus
-
-  endpoint:
-    health:
-      show-details: always
+# Logging Configuration
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG
+    org.springframework.boot.autoconfigure.data.redis: DEBUG

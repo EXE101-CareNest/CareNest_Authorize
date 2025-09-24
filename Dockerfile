@@ -1,50 +1,47 @@
-# Stage 1: Build
-FROM openjdk:17-jdk-slim AS builder
-
+# Build stage
+FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /app
 
-# Copy Gradle wrapper and configuration files
+# Copy Gradle files FIRST
 COPY gradlew .
 COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-
-# Make gradlew executable
+COPY build.gradle settings.gradle ./
 RUN chmod +x gradlew
 
-# Download dependencies
-RUN ./gradlew dependencies --no-daemon
-
-# Copy source code
+# Copy source AFTER
 COPY src src
 
-# Build application
-RUN ./gradlew build -x test --no-daemon
+# Build trong BUILDER stage
+RUN ./gradlew build -x test --no-daemon --parallel
 
-# Stage 2: Runtime
-FROM openjdk:17-jre-slim
+# Runtime stage
+FROM eclipse-temurin:17-jre-alpine
 
-# Create app user
-RUN groupadd -r app && useradd -r -g app app
-
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install dependencies và setup user
+RUN apk add --no-cache curl && \
+    addgroup -S app && \
+    adduser -S app -G app
 
 WORKDIR /app
 
-# Copy built jar from builder stage
+# Copy JAR từ builder stage
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# Change ownership
-RUN chown -R app:app /app
-
-# Switch to app user
+# Set permissions
+RUN chown app:app app.jar
 USER app
+
+# Expose port (8082 theo config của bạn)
+EXPOSE 8082
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+  CMD curl -f http://localhost:8082/actuator/health || exit 1
 
-EXPOSE 8080
-
-ENTRYPOINT ["java", "-server", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# Run app
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-XX:MaxRAMPercentage=75.0", \
+    "-XX:+UseG1GC", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-jar", "app.jar"]
