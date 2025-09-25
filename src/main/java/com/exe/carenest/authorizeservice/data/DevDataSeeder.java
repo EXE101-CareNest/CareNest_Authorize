@@ -2,36 +2,33 @@ package com.exe.carenest.authorizeservice.data;
 
 
 import com.exe.carenest.authorizeservice.auth.model.Account;
-
 import com.exe.carenest.authorizeservice.auth.model.Roles;
 import com.exe.carenest.authorizeservice.auth.model.ShopRole;
-import com.exe.carenest.authorizeservice.repository.ShopRoleRepository;
-import com.exe.carenest.authorizeservice.user.model.Shop;
 import com.exe.carenest.authorizeservice.repository.ShopRepository;
+import com.exe.carenest.authorizeservice.repository.ShopRoleRepository;
 import com.exe.carenest.authorizeservice.repository.UserRepository;
+import com.exe.carenest.authorizeservice.user.model.Shop;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 import static com.exe.carenest.authorizeservice.ultil.Ultils.generateCode;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Profile("local") // Only run in local profile
-public class DevDataSeeder implements CommandLineRunner {
+//@Profile("local") // Only run in local profile
+public class DevDataSeeder implements ApplicationRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ShopRepository shopRepository;
     private final ShopRoleRepository roleRepository;
     @Override
-    public void run(String... args) throws Exception {
+    public void run(ApplicationArguments args) throws Exception {
         if (userRepository.findByUsername("admin").isEmpty()) {
             ShopRole shopRole = new ShopRole();
             shopRole.setName("OWNER");

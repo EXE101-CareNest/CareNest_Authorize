@@ -46,7 +46,7 @@ services:
       - "6379:6379"
     networks:
       carenest-network:
-        ipv4_address: 192.168.0.13  # IP cho Redis (tránh trùng với .10, .11, .12)
+        ipv4_address: 192.168.0.13
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
