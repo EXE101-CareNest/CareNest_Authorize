@@ -31,12 +31,12 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 RUN chown app:app app.jar
 USER app
 
-# Expose port (8082 theo config của bạn)
-EXPOSE 8082
+# Expose port (changed to 8080 for internal container port)
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8082/actuator/health || exit 1
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Run app
 ENTRYPOINT ["java", \
