@@ -24,8 +24,8 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("CareNest Pet Service API")
-                        .description("API documentation for CareNest Pet Service - Pet management and diary system")
+                        .title("CareNest Auth Service API")
+                        .description("API documentation for CareNest Auth Service - Auth management")
                         .version(appVersion)
                         .contact(new Contact()
                                 .name("CareNest Team")

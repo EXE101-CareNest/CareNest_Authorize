@@ -1,5 +1,6 @@
 package com.exe.carenest.authorizeservice.auth.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,10 +20,14 @@ public class RolePermission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String role;
+    @ManyToOne
+    private UserRole role;
 
     @ManyToOne
     @JoinColumn(name = "module_url_pattern", referencedColumnName = "url_pattern")
+    @JsonBackReference
     private ModuleFunc module;
+
+    @Enumerated(EnumType.STRING)
+    private HttpPermission httpPermission;
 }

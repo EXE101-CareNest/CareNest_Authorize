@@ -20,10 +20,10 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class OTPService {
 
-    @Value("${spring.brevo.api.key}")
+    @Value("${brevo.api.key}")
     private String apiKey;
 
-    @Value("${spring.brevo.api.url}")
+    @Value("${brevo.api.url}")
     private String apiUrl;
 
     private final int otpExpiredTime = 300; // 5 minutes in seconds

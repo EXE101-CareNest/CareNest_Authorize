@@ -28,7 +28,7 @@ public class UserMapper {
                 .id(account.getId())
                 .username(account.getUsername())
                 .email(account.getEmail())
-                .role(account.getRole())
+                .role(account.getRole() == null ? null : account.getRole().getName())
                 .isActive(account.is_active())
                 .build();
     }

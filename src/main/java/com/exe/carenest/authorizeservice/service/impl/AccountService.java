@@ -1,14 +1,14 @@
 package com.exe.carenest.authorizeservice.service.impl;
 
-import com.exe.carenest.authorizeservice.auth.model.Roles;
 import com.exe.carenest.authorizeservice.auth.model.Account;
+import com.exe.carenest.authorizeservice.auth.model.UserRole;
 import com.exe.carenest.authorizeservice.config.JwtProvider;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.exception.*;
 import com.exe.carenest.authorizeservice.repository.UserRepository;
+import com.exe.carenest.authorizeservice.repository.UserRoleRepository;
 import com.exe.carenest.authorizeservice.service.IAccountService;
-import com.exe.carenest.authorizeservice.service.OTPService;
 import com.exe.carenest.authorizeservice.ultil.DateUtil;
 import com.exe.carenest.authorizeservice.ultil.Messages;
 import com.exe.carenest.authorizeservice.ultil.UserMapper;
@@ -17,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,11 +27,12 @@ import static com.exe.carenest.authorizeservice.ultil.Ultils.generateCode;
 public class AccountService implements IAccountService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
     @Override
-    public void createAccount(RegisterRequest registerRequest, Roles role) {
+    public void createAccount(RegisterRequest registerRequest, String roleName) {
         // Null check for safety
         if (registerRequest == null || registerRequest.password() == null || registerRequest.reEnterPassword() == null) {
             throw new PasswordException("Yêu cầu đăng ký không hợp lệ");
@@ -47,6 +47,10 @@ public class AccountService implements IAccountService {
         if (userRepository.findByUsername(registerRequest.username()).isPresent()) {
             throw new ApiException(Messages.USER_ALREADY_EXISTS.getCode(), Messages.USER_ALREADY_EXISTS.getMessage(), Messages.USER_ALREADY_EXISTS.getStatus());
         }
+
+        // Resolve role by name
+        UserRole role = userRoleRepository.findByName(roleName)
+                .orElseThrow(() -> new ApiException("ROLE_NOT_FOUND", "Role not found: " + roleName, 404));
 
         Account account = new Account();
         account.setId(generateCode());
@@ -88,9 +92,11 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public void assignRole(String id, Roles role) {
+    public void assignRole(String id, String roleName) {
         Account acc = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
+        UserRole role = userRoleRepository.findByName(roleName)
+                .orElseThrow(() -> new ApiException("ROLE_NOT_FOUND", "Role not found: " + roleName, 404));
         acc.setRole(role);
         userRepository.save(acc);
     }
@@ -137,8 +143,8 @@ public class AccountService implements IAccountService {
     @Override
     public List<AccountResponse> getAllAccounts() {
         return userRepository.findAll().stream()
-                .map(UserMapper::toAccountResponse)
-                .collect(Collectors.toList());
+            .map(UserMapper::toAccountResponse)
+            .collect(Collectors.toList());
     }
 
     @Override

@@ -1,19 +1,22 @@
 package com.exe.carenest.authorizeservice.service.impl;
 
+import com.exe.carenest.authorizeservice.auth.model.Account;
+import com.exe.carenest.authorizeservice.config.JwtProvider;
 import com.exe.carenest.authorizeservice.dto.request.LoginRequest;
 import com.exe.carenest.authorizeservice.dto.response.TokenResponse;
-import com.exe.carenest.authorizeservice.auth.model.Account;
-import com.exe.carenest.authorizeservice.service.IAuthService;
-import com.exe.carenest.authorizeservice.config.JwtProvider;
-import com.exe.carenest.authorizeservice.exception.ExpiredTokenException;
-import com.exe.carenest.authorizeservice.exception.InvalidTokenException;
-import com.exe.carenest.authorizeservice.exception.PasswordException;
-import com.exe.carenest.authorizeservice.exception.UnauthorizedException;
-import com.exe.carenest.authorizeservice.exception.UserNotFoundException;
+import com.exe.carenest.authorizeservice.exception.*;
 import com.exe.carenest.authorizeservice.repository.UserRepository;
+import com.exe.carenest.authorizeservice.service.IAuthService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +33,10 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;  // Giả sử bạn có RedisService để lưu blacklist/refresh
 
+//    @Autowired
+    private final AuthenticationManager authenticationManager;
+
+
     private final long refreshTokenTTL = 7 * 24 * 60 * 60L; // 7 ngày
 
     @Override
@@ -38,15 +45,25 @@ public class AuthService implements IAuthService {
             throw new InvalidTokenException("Thông tin đăng nhập không hợp lệ");
         }
 
-        Account user = userRepo.findByUsername(req.username()).orElseThrow(UserNotFoundException::new);
-
-        if (!passwordEncoder.matches(req.password(), user.getPassword())) {
+        // Let AuthenticationManager handle all validation
+        Authentication authentication;
+        try {
+            authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(req.username(), req.password()));
+        } catch (BadCredentialsException e) {
             throw new PasswordException("Mật khẩu không đúng");
-        }
-
-        if(!user.is_active()){
+        } catch (DisabledException e) {
             throw new UnauthorizedException("Tài khoàn chưa được kích hoạt");
         }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Get authenticated user from authentication result
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        // If you need Account object, get it from username
+        Account user = userRepo.findByUsername(userDetails.getUsername())
+                .orElseThrow(UserNotFoundException::new);
 
         log.info("Login successful for user: {}", req.username());
 

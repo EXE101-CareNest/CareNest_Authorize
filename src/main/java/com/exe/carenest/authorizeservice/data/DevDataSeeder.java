@@ -1,104 +1,244 @@
 package com.exe.carenest.authorizeservice.data;
 
-
-import com.exe.carenest.authorizeservice.auth.model.Account;
-import com.exe.carenest.authorizeservice.auth.model.Roles;
-import com.exe.carenest.authorizeservice.auth.model.ShopRole;
-import com.exe.carenest.authorizeservice.repository.ShopRepository;
-import com.exe.carenest.authorizeservice.repository.ShopRoleRepository;
+import com.exe.carenest.authorizeservice.auth.model.*;
+import com.exe.carenest.authorizeservice.repository.ModuleRepository;
+import com.exe.carenest.authorizeservice.repository.RoleRepository;
 import com.exe.carenest.authorizeservice.repository.UserRepository;
-import com.exe.carenest.authorizeservice.user.model.Shop;
+import com.exe.carenest.authorizeservice.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.exe.carenest.authorizeservice.ultil.Ultils.generateCode;
 
 @Component
-@RequiredArgsConstructor
+@Order(1)
 @Slf4j
-//@Profile("local") // Only run in local profile
-public class DevDataSeeder implements ApplicationRunner {
+@RequiredArgsConstructor
+public class DevDataSeeder implements CommandLineRunner {
 
-    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final UserRepository accountRepository;
+    private final ModuleRepository moduleFuncRepository;
+    private final RoleRepository rolePermissionRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ShopRepository shopRepository;
-    private final ShopRoleRepository roleRepository;
+
     @Override
-    public void run(ApplicationArguments args) throws Exception {
-        if (userRepository.findByUsername("admin").isEmpty()) {
-            ShopRole shopRole = new ShopRole();
-            shopRole.setName("OWNER");
-            roleRepository.save(shopRole);
+    public void run(String... args) throws Exception {
+        log.info("🚀 Starting development data seeding with proper order...");
 
-            ShopRole shopRole2 = new ShopRole();
-            shopRole2.setName("STAFF");
-            roleRepository.save(shopRole2);
+        // 1. Seed UserRoles FIRST
+        seedUserRoles();
 
-            createAdminAccount();
-            createShopAccounts();
-            createShopOwner(shopRole);
-            createShopStaff(shopRole2);
-            log.info("Development test accounts created!");
+        // 2. Seed Users (Accounts) with roles
+        seedUsers();
+
+        // 3. Seed ModuleFuncs
+        seedModuleFuncs();
+
+        // 4. Seed RolePermissions LAST
+        seedRolePermissions();
+
+        log.info("✅ Development data seeding completed in order!");
+    }
+
+    // Step 1: Create UserRoles
+    private void seedUserRoles() {
+        if (userRoleRepository.count() == 0) {
+            log.info("1️⃣ Seeding UserRoles...");
+
+            createUserRole("ROLE_ADMIN");
+            createUserRole("ROLE_MANAGER");
+            createUserRole("ROLE_USER");
+            createUserRole("ROLE_SHOP");
+
+            log.info("✅ Created {} UserRoles", userRoleRepository.count());
         } else {
-            log.info("Test accounts already exist, skipping seeding.");
+            log.info("⏩ UserRoles already exist, skipping...");
         }
     }
 
-    private void createAdminAccount() {
-        Account admin = new Account();
-        admin.setId(generateCode());
-        admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("@1"));
-        admin.setEmail("admin@carenest.com");
-        admin.setRole(Roles.ROLE_ADMIN);
-        admin.set_active(true);
-        userRepository.save(admin);
-        log.info("Admin account created: admin/@1");
+    // Step 2: Create Users (Accounts) with roles
+    private void seedUsers() {
+        if (accountRepository.count() == 0) {
+            log.info("2️⃣ Seeding Users (Accounts)...");
+
+            // Get roles for assignment
+            UserRole adminRole = findRoleByName("ROLE_ADMIN");
+            UserRole managerRole = findRoleByName("ROLE_MANAGER");
+            UserRole userRole = findRoleByName("ROLE_USER");
+            UserRole shopRole = findRoleByName("ROLE_SHOP");
+
+            // Create admin user
+            createAccount("admin", "admin@carenest.com", adminRole);
+
+            // Create manager user
+            createAccount("manager", "manager@carenest.com", managerRole);
+
+            // Create regular user
+            createAccount("user", "user@carenest.com", userRole);
+
+            // Create shop user
+            createAccount("shop", "shop@carenest.com", shopRole);
+
+            log.info("✅ Created {} Users", accountRepository.count());
+        } else {
+            log.info("⏩ Users already exist, skipping...");
+        }
     }
 
+    // Step 3: Create ModuleFuncs
+    private void seedModuleFuncs() {
+        if (moduleFuncRepository.count() == 0) {
+            log.info("3️⃣ Seeding ModuleFuncs...");
 
+            // Admin modules
+            createModule("/api/admin/accounts", "Quản lý tài khoản Admin");
+            createModule("/api/admin/accounts/{id}", "Chi tiết tài khoản Admin");
+            createModule("/api/admin/accounts/{id}/role", "Phân quyền người dùng");
 
-    private void createShopOwner(ShopRole role) {
-        Account user = new Account();
-        user.setId(generateCode());
-        user.setUsername("shopOwner");
-        user.setPassword(passwordEncoder.encode("@1"));
-        user.setEmail("shopOwner@carenest.com");
-        user.setShopRole(role);
-        user.setRole(Roles.ROLE_USER);
-        user.set_active(true);
-        userRepository.save(user);
-        log.info("user account created: shopOwner/@1");
+            // User modules
+            createModule("/api/accounts/register/customer", "Đăng ký khách hàng");
+            createModule("/api/accounts/username/{username}", "Tìm kiếm theo username");
+            createModule("/api/accounts/password", "Đổi mật khẩu");
+
+            // Shop modules
+            createModule("/api/shops/register", "Đăng ký cửa hàng");
+            createModule("/api/shops/information", "Thông tin cửa hàng");
+
+            log.info("✅ Created {} ModuleFuncs", moduleFuncRepository.count());
+        } else {
+            log.info("⏩ ModuleFuncs already exist, skipping...");
+        }
     }
 
-    private void createShopStaff(ShopRole role) {
-        Account user = new Account();
-        user.setId(generateCode());
-        user.setUsername("shopStaff");
-        user.setPassword(passwordEncoder.encode("@1"));
-        user.setEmail("shopStaff@carenest.com");
-        user.setShopRole(role);
-        user.setRole(Roles.ROLE_USER);
-        user.set_active(true);
-        userRepository.save(user);
-        log.info("User account created: shopStaff/@1");
-    }
-    private void createShopAccounts() {
-        // Test Shop
-        Shop testShop = new Shop();
-        testShop.setPassword(passwordEncoder.encode("test123"));
-        testShop.setShopName("Test Pet Shop");
+    // Step 4: Create RolePermissions (depends on UserRoles and ModuleFuncs)
+    private void seedRolePermissions() {
+        if (rolePermissionRepository.count() == 0) {
+            log.info("4️⃣ Seeding RolePermissions...");
 
-//        Optional<Account> account = userRepository.findById(1L);
-//        testShop.setOwner(account.orElseGet(Account::new));
-//        testShop.setPassword(passwordEncoder.encode("shop@1"));
-//        testShop.setWorkingDays("7");
-//        testShop.setDescription("Shop dùng để test");
-//        testShop.setStatus(true);
-//        shopRepository.save(testShop);
+            // Get all roles and modules
+            List<UserRole> roles = userRoleRepository.findAll();
+            List<ModuleFunc> modules = moduleFuncRepository.findAll();
+
+            // Find roles
+            UserRole adminRole = findRoleByName("ROLE_ADMIN");
+            UserRole managerRole = findRoleByName("ROLE_MANAGER");
+            UserRole userRole = findRoleByName("ROLE_USER");
+            UserRole shopRole = findRoleByName("ROLE_SHOP");
+
+            // ADMIN: All permissions on all modules
+            if (adminRole != null) {
+                log.info("🔑 Granting ALL permissions to ADMIN...");
+                for (ModuleFunc module : modules) {
+                   for(HttpPermission permission : HttpPermission.values()) {
+                       createRolePermission(adminRole, module, permission);
+                   }
+                }
+            }
+
+            // MANAGER: Limited permissions
+            if (managerRole != null) {
+                log.info("🔑 Granting LIMITED permissions to MANAGER...");
+
+                modules.stream()
+                        .filter(m -> m.getUrlPattern().startsWith("/api/accounts"))
+                        .forEach(module -> {
+                            createRolePermission(managerRole, module, HttpPermission.READ);
+                            createRolePermission(managerRole, module, HttpPermission.UPDATE);
+                        });
+
+                modules.stream()
+                        .filter(m -> m.getUrlPattern().startsWith("/api/shops"))
+                        .forEach(module -> {
+                            createRolePermission(managerRole, module, HttpPermission.READ);
+                        });
+            }
+
+            // USER: Basic permissions on user modules
+            if (userRole != null) {
+                log.info("🔑 Granting BASIC permissions to USER...");
+
+                modules.stream()
+                        .filter(m -> m.getUrlPattern().startsWith("/api/accounts")
+                                && !m.getUrlPattern().startsWith("/api/admin"))
+                        .forEach(module -> {
+                            createRolePermission(userRole, module, HttpPermission.READ);
+
+                            if (module.getUrlPattern().contains("register") ||
+                                    module.getUrlPattern().contains("password")) {
+                                createRolePermission(userRole, module, HttpPermission.CREATE);
+                                createRolePermission(userRole, module, HttpPermission.UPDATE);
+                            }
+                        });
+            }
+
+            // SHOP: Full permissions on shop modules
+            if (shopRole != null) {
+                log.info("🔑 Granting SHOP permissions to SHOP role...");
+
+                modules.stream()
+                        .filter(m -> m.getUrlPattern().startsWith("/api/shops"))
+                        .forEach(module -> {
+                            for (HttpPermission permission : HttpPermission.values()) {
+                                createRolePermission(shopRole, module, permission);
+                            }
+                        });
+            }
+
+            log.info("✅ Created {} RolePermissions", rolePermissionRepository.count());
+        } else {
+            log.info("⏩ RolePermissions already exist, skipping...");
+        }
     }
+
+    // Helper methods
+    private void createUserRole(String roleName) {
+        UserRole role = new UserRole();
+        role.setName(roleName);
+        userRoleRepository.save(role);
+    }
+
+    private void createAccount(String username, String email, UserRole role) {
+        Account account = new Account();
+        // Account uses String @Id without @GeneratedValue, so we must set it manually
+//        account.setId(com.exe.carenest.authorizeservice.ultil.Ultils.generateCode());
+        account.setId(generateCode());
+        account.setUsername(username);
+        account.setEmail(email);
+        account.setPassword(passwordEncoder.encode("123456"));
+        account.setRole(role);
+        account.set_active(true);
+        account.setCreatedDate(LocalDateTime.now());
+        accountRepository.save(account);
+    }
+
+    private void createModule(String urlPattern, String name) {
+        ModuleFunc module = new ModuleFunc();
+        module.setUrlPattern(urlPattern);
+        module.setName(name);
+        moduleFuncRepository.save(module);
+    }
+
+    private void createRolePermission(UserRole role, ModuleFunc module, HttpPermission typePermission) {
+        RolePermission rp = new RolePermission();
+        rp.setRole(role);
+        rp.setModule(module);
+        rp.setHttpPermission(typePermission);
+        rolePermissionRepository.save(rp);
+    }
+
+    private UserRole findRoleByName(String roleName) {
+        return userRoleRepository.findAll().stream()
+                .filter(role -> roleName.equals(role.getName()))
+                .findFirst()
+                .orElse(null);
+    }
+    
 }

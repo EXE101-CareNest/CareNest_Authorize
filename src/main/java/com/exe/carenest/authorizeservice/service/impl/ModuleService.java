@@ -1,5 +1,6 @@
 package com.exe.carenest.authorizeservice.service.impl;
 
+import com.exe.carenest.authorizeservice.dto.response.ModuleWithPermissionsDto;
 import com.exe.carenest.authorizeservice.exception.ApiException;
 import com.exe.carenest.authorizeservice.auth.model.ModuleFunc;
 import com.exe.carenest.authorizeservice.repository.ModuleRepository;
@@ -20,7 +21,7 @@ public class ModuleService implements IModuleService {
         if (moduleRepository.existsById(urlPattern)) {
             throw new ApiException("MODULE_EXISTS", "Module with this URL pattern already exists", 400);
         }
-        ModuleFunc module = new ModuleFunc(urlPattern, name);
+        ModuleFunc module = new ModuleFunc();
         return moduleRepository.save(module);
     }
 
@@ -35,11 +36,18 @@ public class ModuleService implements IModuleService {
         return moduleRepository.findAll();
     }
 
+
+
     @Override
     public void deleteModule(String urlPattern) {
         if (!moduleRepository.existsById(urlPattern)) {
             throw new ApiException("MODULE_NOT_FOUND", "Module not found", 404);
         }
         moduleRepository.deleteById(urlPattern);
+    }
+
+    @Override
+    public List<ModuleWithPermissionsDto> getAllModulesWithPermissions() {
+        return List.of();
     }
 }

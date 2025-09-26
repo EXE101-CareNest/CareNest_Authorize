@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Quản lý Role & Permission với CRUD</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+
+        .content {
+            padding: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .collapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 15px 0;
+            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 20px;
+        }
+
+        .collapse-header h3 {
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            color: #6366f1;
+        }
+
+        .collapse-icon.rotated { transform: rotate(180deg); }
+
+        .collapse-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapse-content.hidden { max-height: 0; }
+
+        .form-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .input-group input, .input-group select {
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            margin: 2px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .table th {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            color: #374151;
+            padding: 15px;
+            font-weight: 600;
+            text-align: left;
+            border-bottom: 3px solid #6366f1;
+            position: sticky;
+            top: 0;
+        }
+
+        .table th:first-child {
+            border-left: 4px solid #6366f1;
+            border-top-left-radius: 12px;
+        }
+        .table th:last-child { border-top-right-radius: 12px; }
+
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover td {
+            background: #f8fafc;
+            border-left-color: #6366f1;
+        }
+
+        .table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+        .table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
+        }
+
+        .permission-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .permission-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .permission-read {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+
+        .permission-create {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .permission-update {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .permission-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .module-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .module-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .module-url {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-family: monospace;
+        }
+
+        .role-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .permission-controls {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+            }
+            .input-group {
+                min-width: 100%;
+            }
+            .container {
+                max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-shield-alt"></i> Quản lý Role & Permission CRUD</h1>
+        <p>Hệ thống phân quyền động với HTTP Methods (READ, CREATE, UPDATE, DELETE)</p>
+    </div>
+
+    <div class="content">
+        <!-- Form thêm mới -->
+        <div class="card">
+            <div class="collapse-header" onclick="toggleCollapse('addForms')">
+                <h3><i class="fas fa-plus-circle"></i> Thêm mới Role & Module</h3>
+                <i class="fas fa-chevron-down collapse-icon" id="addForms-icon"></i>
+            </div>
+            <div class="collapse-content" id="addForms-content">
+                <div class="form-group">
+                    <div class="input-group">
+                        <label>Role mới</label>
+                        <input type="text" id="newRole" placeholder="VD: MANAGER, CUSTOMER_SERVICE">
+                    </div>
+                    <button class="btn btn-primary" onclick="addRole()">
+                        <i class="fas fa-user-plus"></i> Thêm Role
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <label>Tên Module</label>
+                        <input type="text" id="newModuleName" placeholder="VD: Quản lý sản phẩm">
+                    </div>
+                    <div class="input-group">
+                        <label>URL Pattern</label>
+                        <input type="text" id="newModuleUrl" placeholder="VD: /api/products/**">
+                    </div>
+                    <button class="btn btn-success" onclick="addModule()">
+                        <i class="fas fa-puzzle-piece"></i> Thêm Module
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chọn role -->
+        <div class="role-selector">
+            <div class="input-group" style="max-width: 300px;">
+                <label><i class="fas fa-users"></i> Chọn Role để quản lý</label>
+                <select id="roleSelect" onchange="renderTable()">
+                    <!-- Options sẽ được tạo bởi JS -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Bảng quyền -->
+        <div class="card">
+            <div class="collapse-header" onclick="toggleCollapse('permissions')">
+                <h3><i class="fas fa-key"></i> Quyền CRUD của <span id="selectedRoleName">ADMIN</span></h3>
+                <i class="fas fa-chevron-down collapse-icon" id="permissions-icon"></i>
+            </div>
+            <div class="collapse-content" id="permissions-content">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th><i class="fas fa-puzzle-piece"></i> Module</th>
+                            <th><i class="fas fa-key"></i> Quyền hiện tại</th>
+                            <th><i class="fas fa-cogs"></i> Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="permissionTableBody">
+                        <!-- Dữ liệu sẽ được tạo bởi JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dữ liệu mẫu (thay bằng API calls thực tế)
+    let roles = ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER", "ROLE_SHOP"];
+    let modules = [
+        { name: "Quản lý tài khoản Admin", url: "/api/admin/accounts" },
+        { name: "Chi tiết tài khoản", url: "/api/admin/accounts/{id}" },
+        { name: "Phân quyền người dùng", url: "/api/admin/accounts/{id}/role" },
+        { name: "Đăng ký khách hàng", url: "/api/accounts/register/customer" },
+        { name: "Tìm theo username", url: "/api/accounts/username/{username}" },
+        { name: "Đổi mật khẩu", url: "/api/accounts/password" },
+        { name: "Đăng ký shop", url: "/api/shops/register" },
+        { name: "Thông tin shop", url: "/api/shops/information" }
+    ];
+
+    const httpMethods = ['READ', 'CREATE', 'UPDATE', 'DELETE'];
+
+    // Object chứa quyền CRUD cho từng role
+    let rolePermissions = {
+        "ROLE_ADMIN": {
+            "/api/admin/accounts": ['READ', 'CREATE', 'UPDATE', 'DELETE'],
+            "/api/admin/accounts/{id}": ['READ', 'CREATE', 'UPDATE', 'DELETE'],
+            "/api/admin/accounts/{id}/role": ['READ', 'CREATE', 'UPDATE', 'DELETE'],
+            "/api/accounts/register/customer": ['READ', 'CREATE', 'UPDATE', 'DELETE'],
+            "/api/accounts/username/{username}": ['READ', 'CREATE', 'UPDATE', 'DELETE'],
+            "/api/accounts/password": ['READ', 'CREATE', 'UPDATE', 'DELETE'],
+            "/api/shops/register": ['READ', 'CREATE', 'UPDATE', 'DELETE'],
+            "/api/shops/information": ['READ', 'CREATE', 'UPDATE', 'DELETE']
+        },
+        "ROLE_MANAGER": {
+            "/api/accounts/register/customer": ['READ', 'CREATE'],
+            "/api/accounts/username/{username}": ['READ'],
+            "/api/accounts/password": ['READ', 'UPDATE']
+        },
+        "ROLE_USER": {
+            "/api/accounts/register/customer": ['CREATE'],
+            "/api/accounts/username/{username}": ['READ'],
+            "/api/accounts/password": ['READ', 'UPDATE']
+        },
+        "ROLE_SHOP": {
+            "/api/shops/register": ['READ', 'CREATE', 'UPDATE'],
+            "/api/shops/information": ['READ', 'CREATE', 'UPDATE', 'DELETE']
+        }
+    };
+
+    function toggleCollapse(id) {
+        const content = document.getElementById(id + '-content');
+        const icon = document.getElementById(id + '-icon');
+
+        content.classList.toggle('hidden');
+        icon.classList.toggle('rotated');
+    }
+
+    function renderRoleSelect() {
+        const select = document.getElementById('roleSelect');
+        select.innerHTML = '';
+        roles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role;
+            option.textContent = role.replace('ROLE_', '');
+            select.appendChild(option);
+        });
+    }
+
+    function renderTable() {
+        const selectedRole = document.getElementById('roleSelect').value;
+        document.getElementById('selectedRoleName').textContent = selectedRole.replace('ROLE_', '');
+
+        const tbody = document.getElementById('permissionTableBody');
+        tbody.innerHTML = '';
+
+        modules.forEach(module => {
+            const permissions = rolePermissions[selectedRole]?.[module.url] || [];
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td>
+                    <div class="module-info">
+                        <div class="module-name">${module.name}</div>
+                        <div class="module-url">${module.url}</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="permission-badges">
+                        ${permissions.length > 0 ?
+                permissions.map(p => `<span class="permission-badge permission-${p.toLowerCase()}">${p}</span>`).join('') :
+                '<span style="color: #64748b; font-style: italic;">Không có quyền</span>'
+            }
+                    </div>
+                </td>
+                <td>
+                    <div class="permission-controls">
+                        ${httpMethods.map(method => {
+                const hasPermission = permissions.includes(method);
+                return hasPermission ?
+                    `<button class="btn btn-danger btn-sm" onclick="removePermission('${selectedRole}', '${module.url}', '${method}')">
+                                    <i class="fas fa-minus"></i> ${method}
+                                </button>` :
+                    `<button class="btn btn-success btn-sm" onclick="addPermission('${selectedRole}', '${module.url}', '${method}')">
+                                    <i class="fas fa-plus"></i> ${method}
+                                </button>`;
+            }).join('')}
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function addPermission(role, url, method) {
+        if (!rolePermissions[role]) rolePermissions[role] = {};
+        if (!rolePermissions[role][url]) rolePermissions[role][url] = [];
+
+        if (!rolePermissions[role][url].includes(method)) {
+            rolePermissions[role][url].push(method);
+            renderTable();
+            console.log(`Added ${method} permission for ${url} to ${role}`);
+            // TODO: Call backend API to add permission
+        }
+    }
+
+    function removePermission(role, url, method) {
+        if (rolePermissions[role] && rolePermissions[role][url]) {
+            rolePermissions[role][url] = rolePermissions[role][url].filter(m => m !== method);
+            if (rolePermissions[role][url].length === 0) {
+                delete rolePermissions[role][url];
+            }
+            renderTable();
+            console.log(`Removed ${method} permission for ${url} from ${role}`);
+            // TODO: Call backend API to remove permission
+        }
+    }
+
+    function addRole() {
+        const newRole = document.getElementById('newRole').value.trim().toUpperCase();
+        if (newRole && !roles.includes(newRole)) {
+            const formattedRole = newRole.startsWith('ROLE_') ? newRole : `ROLE_${newRole}`;
+            roles.push(formattedRole);
+            rolePermissions[formattedRole] = {};
+            renderRoleSelect();
+            document.getElementById('roleSelect').value = formattedRole;
+            renderTable();
+            document.getElementById('newRole').value = '';
+            console.log(`Added role: ${formattedRole}`);
+            // TODO: Call backend API
+        }
+    }
+
+    function addModule() {
+        const name = document.getElementById('newModuleName').value.trim();
+        const url = document.getElementById('newModuleUrl').value.trim();
+        if (name && url && !modules.find(m => m.url === url)) {
+            modules.push({ name, url });
+            // Auto-grant READ permission to ADMIN for new modules
+            if (!rolePermissions["ROLE_ADMIN"][url]) {
+                rolePermissions["ROLE_ADMIN"][url] = ['READ'];
+            }
+            renderTable();
+            document.getElementById('newModuleName').value = '';
+            document.getElementById('newModuleUrl').value = '';
+            console.log(`Added module: ${name} - ${url}`);
+            // TODO: Call backend API
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        renderRoleSelect();
+        renderTable();
+    });
+</script>
+</body>
+</html>

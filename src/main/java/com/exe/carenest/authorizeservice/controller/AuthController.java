@@ -1,7 +1,5 @@
 package com.exe.carenest.authorizeservice.controller;
 
-import com.exe.carenest.authorizeservice.auth.model.Account;
-import com.exe.carenest.authorizeservice.config.annotation.AllowAllRoles;
 import com.exe.carenest.authorizeservice.config.JwtProvider;
 import com.exe.carenest.authorizeservice.dto.request.*;
 import com.exe.carenest.authorizeservice.dto.response.LoginResponse;
@@ -33,7 +31,6 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "User logout")
-    @AllowAllRoles
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         String jwtToken = token.replace("Bearer ", "");
         authService.logout(jwtToken);
@@ -61,14 +58,12 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
-    @AllowAllRoles
     public ResponseEntity<?> verify(@RequestHeader("Authorization") String token) {
         boolean valid = authService.verify(token.replace("Bearer ", ""));
         return ResponseEntity.ok(Map.of("valid", valid));
     }
 
     @GetMapping("/authorize")
-    @AllowAllRoles
     public ResponseEntity<?> authorize(@RequestHeader("Authorization") String token,
                                        @RequestParam String role) {
         boolean allowed = authService.authorize(token.replace("Bearer ", ""), role);
@@ -226,13 +221,11 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    @AllowAllRoles
     public ResponseEntity<TokenResponse> refresh(@RequestBody Map<String, String> body) {
         return ResponseEntity.ok(authService.refresh(body.get("refreshToken")));
     }
 
     @PostMapping("/revoke")
-    @AllowAllRoles
     public ResponseEntity<?> revoke(@RequestBody Map<String, String> body) {
         authService.revokeRefreshToken(body.get("refreshToken"));
         return ResponseEntity.ok(Map.of("revoked", true));

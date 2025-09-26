@@ -1,10 +1,9 @@
 package com.exe.carenest.authorizeservice.controller;
 
-import com.exe.carenest.authorizeservice.config.annotation.AllowAllRoles;
-import com.exe.carenest.authorizeservice.dto.request.PermissionCheckRequest;
+import com.exe.carenest.authorizeservice.auth.model.HttpPermission;
 import com.exe.carenest.authorizeservice.dto.response.PermissionCheckResponse;
+import com.exe.carenest.authorizeservice.service.IAccountService;
 import com.exe.carenest.authorizeservice.service.IRolePermissionService;
-import com.exe.carenest.authorizeservice.auth.model.RolePermission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -12,27 +11,29 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/permission")
 @RequiredArgsConstructor
+
 public class PermissionController {
 
     private final IRolePermissionService rolePermissionService;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
+    private final IAccountService accountService;
 
-    @PostMapping("/check/url")
-    @AllowAllRoles
-    public ResponseEntity<PermissionCheckResponse> checkUrl(@RequestBody PermissionCheckRequest request) {
-        String url = request != null ? request.url() : null;
-        if (url == null || url.isBlank()) {
+    @PostMapping("/check")
+    public ResponseEntity<PermissionCheckResponse> checkUrl( @RequestParam("path") String path, @RequestParam("httpMethod") String httpMethod) {
+
+        HttpPermission requiredPermission = getRequiredPermission(httpMethod);
+
+
+        if (path == null || path.isBlank()) {
             return ResponseEntity.badRequest().body(new PermissionCheckResponse(false));
         }
 
@@ -42,17 +43,19 @@ public class PermissionController {
         }
 
         Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-        boolean allowed = authorities.stream()
-                .map(GrantedAuthority::getAuthority)
-                .filter(Objects::nonNull)
-                .flatMap(role -> {
-                    List<RolePermission> perms = rolePermissionService.findByRole(role);
-                    return perms.stream();
-                })
-                .anyMatch(rp -> rp.getModule() != null && matches(rp.getModule().getUrlPattern(), url));
 
-        return ResponseEntity.ok(new PermissionCheckResponse(allowed));
+        String userRole = authorities.stream().map(GrantedAuthority::getAuthority).findFirst().orElse("");
+
+
+        boolean isAllowed = rolePermissionService.hasPermission(userRole, path, requiredPermission);
+
+
+        return ResponseEntity.ok(new PermissionCheckResponse(isAllowed));
     }
+
+
+
+
 
     private boolean matches(String pattern, String url) {
         if (pattern == null || pattern.isBlank()) return false;
@@ -60,5 +63,16 @@ public class PermissionController {
         String p = pattern.startsWith("/") ? pattern : "/" + pattern;
         String u = url.startsWith("/") ? url : "/" + url;
         return antPathMatcher.match(p, u);
+    }
+
+    private HttpPermission getRequiredPermission(String httpMethod) {
+        switch (httpMethod.toUpperCase()) {
+            case "GET": return HttpPermission.READ;
+            case "POST": return HttpPermission.CREATE;
+            case "PUT":
+            case "PATCH": return HttpPermission.UPDATE;
+            case "DELETE": return HttpPermission.DELETE;
+            default: return HttpPermission.READ;
+        }
     }
 }

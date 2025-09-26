@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,14 +39,17 @@ public class Account implements UserDetails {
     @Enumerated(EnumType.STRING)
     private RegisterStatus registerStatus;
 
-    @Enumerated(EnumType.STRING)
-    private Roles role;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserRole role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private ShopRole shopRole; // Here is define where shop can assign role for staff if they want
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(() -> this.role.name());
+        return List.of(() -> this.role != null ? this.role.getName() : "");
     }
+
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
 }

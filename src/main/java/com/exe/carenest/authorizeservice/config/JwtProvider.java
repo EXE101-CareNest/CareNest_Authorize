@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Component
@@ -40,9 +41,17 @@ public class JwtProvider {
     }
 
     public String generateToken(Account user) {
+
+        Map<String, Object> claims = new HashMap<>();
+
+        // Standard claims
+        claims.put("sub", user.getUsername());
+        claims.put("userId", user.getId()); // Thêm user ID
+        claims.put("role", user.getRole().getName());
+
         return Jwts.builder()
                 .setSubject(user.getUsername())
-                .claim("authorities", List.of(user.getRole()))
+                .setClaims(claims)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
