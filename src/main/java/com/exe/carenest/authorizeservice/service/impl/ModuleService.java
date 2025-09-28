@@ -1,6 +1,5 @@
 package com.exe.carenest.authorizeservice.service.impl;
 
-import com.exe.carenest.authorizeservice.dto.response.ModuleWithPermissionsDto;
 import com.exe.carenest.authorizeservice.exception.ApiException;
 import com.exe.carenest.authorizeservice.auth.model.ModuleFunc;
 import com.exe.carenest.authorizeservice.repository.ModuleRepository;
@@ -45,9 +44,9 @@ public class ModuleService implements IModuleService {
         }
         moduleRepository.deleteById(urlPattern);
     }
-
-    @Override
-    public List<ModuleWithPermissionsDto> getAllModulesWithPermissions() {
-        return List.of();
-    }
+//
+//    @Override
+//    public List<ModuleWithPermissionsDto> getAllModulesWithPermissions() {
+//        return List.of();
+//    }
 }

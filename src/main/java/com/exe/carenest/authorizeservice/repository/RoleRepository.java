@@ -57,10 +57,11 @@ public interface RoleRepository extends JpaRepository<RolePermission, Long> {
 
 
     //Fast check
-    @Query("SELECT COUNT(rp) > 0 FROM RolePermission rp WHERE rp.role.name = :roleName AND rp.module.urlPattern = :pattern AND rp.httpPermission = :permission")
+    @Query("SELECT COUNT(rp) > 0 FROM RolePermission rp WHERE rp.role.name = :roleName AND rp.module.urlPattern = :actualUrl AND rp.httpPermission = :permission")
     boolean existsByRoleAndModuleAndPermission(@Param("roleName") String roleName,
-                                               @Param("pattern") String pattern,
+                                               @Param("actualUrl") String actualUrl,
                                                @Param("permission") HttpPermission permission);
 
 
+    void deleteByRole_NameAndModule_UrlPattern(String roleName, String moduleUrlPattern);
 }

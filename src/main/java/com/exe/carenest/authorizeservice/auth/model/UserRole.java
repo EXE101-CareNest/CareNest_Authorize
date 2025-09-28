@@ -19,4 +19,8 @@ public class UserRole {
     @Id
     private int id;
     private String name;
+
+    public UserRole(String name) {
+        this.name = name;
+    }
 }
