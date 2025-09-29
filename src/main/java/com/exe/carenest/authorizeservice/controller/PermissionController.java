@@ -47,7 +47,7 @@ public class PermissionController {
         String userRole = authorities.stream().map(GrantedAuthority::getAuthority).findFirst().orElse("");
 
 
-        boolean isAllowed = rolePermissionService.hasPermission(userRole, path, requiredPermission);
+        boolean isAllowed = rolePermissionService.checkPermission(path, requiredPermission, userRole);
 
 
         return ResponseEntity.ok(new PermissionCheckResponse(isAllowed));

@@ -1,6 +1,9 @@
 package com.exe.carenest.authorizeservice.ultil;
 
-import java.time.LocalDate;
+import org.springframework.http.server.PathContainer;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
@@ -8,6 +11,8 @@ import java.util.Locale;
 import java.util.Random;
 
 public class Ultils {
+    private static final PathPatternParser pathPatternParser = new PathPatternParser();
+
     public static String generateCode() {
         LocalDateTime now = LocalDateTime.now();
 
@@ -33,5 +38,10 @@ public class Ultils {
         String id = day + month + year + time + hash;
 
         return id;
+    }
+
+    public static boolean checkPermissions(String moduleUrl, String actualUrl) {
+        PathPattern pattern = pathPatternParser.parse(moduleUrl);
+        return pattern.matches(PathContainer.parsePath(actualUrl));
     }
 }

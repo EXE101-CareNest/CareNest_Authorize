@@ -12,7 +12,7 @@ public interface IRolePermissionService {
     List<RolePermission> getAllRolePermissions();
     void deleteRolePermission(Long id);
 
-    boolean  hasPermission(String roleName, String moduleUrlPattern, HttpPermission httpMethod);
+    boolean  checkPermission(String actualUrl, HttpPermission httpMethod, String role);
 
     RolePermission updateRolePermission(Long id, HttpPermission httpPermission);
     void batchUpdatePermissions(String roleName, String moduleUrlPattern, List<HttpPermission> permissions);

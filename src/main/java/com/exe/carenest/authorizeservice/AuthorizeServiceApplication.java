@@ -3,6 +3,7 @@ package com.exe.carenest.authorizeservice;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -24,8 +25,8 @@ public class AuthorizeServiceApplication {
     private Environment environment;
 
     public static void main(String[] args) {
-//        SpringApplication.run(AuthorizeServiceApplication.class, args);
-        System.out.println(checkPermission("/api/admin/accounts/1/role"));
+        SpringApplication.run(AuthorizeServiceApplication.class, args);
+//        System.out.println(checkPermissions("/api/admin/accounts/1/role"));
     }
 
 
@@ -64,9 +65,15 @@ public class AuthorizeServiceApplication {
             "/api/admin/accounts/{id}"
     );
 
+    private static final String moduleUrl = "/api/admin/accounts/{id}/role";
+
+
     public static boolean checkPermission(String actualUrl) {
         return moduleUrls.stream()
                 .map(pathPatternParser::parse)
                 .anyMatch(pattern -> pattern.matches(PathContainer.parsePath(actualUrl)));
     }
+
+
+
 }
