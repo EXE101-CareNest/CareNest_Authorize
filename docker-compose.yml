@@ -13,7 +13,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
-      - EUREKA_SERVER_URL=http://localhost:8761/eureka
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://100.93.191.32:5432/carenest_authoie_service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=HoiLamChi123@
+
       # Redis trong network
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
