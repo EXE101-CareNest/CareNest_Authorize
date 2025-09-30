@@ -4,7 +4,6 @@ import com.exe.carenest.authorizeservice.auth.model.ModuleFunc;
 import com.exe.carenest.authorizeservice.dto.request.CreateModuleRequest;
 import com.exe.carenest.authorizeservice.service.IModuleService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,30 +18,26 @@ public class ModuleController {
     
     // GET: Lấy tất cả modules
     @GetMapping
-    public ResponseEntity<List<ModuleFunc>> getAllModules() {
-        List<ModuleFunc> modules = moduleService.getAllModules();
-        return ResponseEntity.ok(modules);
+    public List<ModuleFunc> getAllModules() {
+        return moduleService.getAllModules();
     }
     
     // POST: Thêm module mới
     @PostMapping
-    public ResponseEntity<ModuleFunc> createModule(@RequestBody CreateModuleRequest request) {
-        ModuleFunc module = moduleService.createModule(request.urlPattern(), request.name());
-        return ResponseEntity.ok(module);
+    public ModuleFunc createModule(@RequestBody CreateModuleRequest request) {
+        return moduleService.createModule(request.urlPattern(), request.name());
     }
     
     // GET: Lấy module theo URL pattern
     @GetMapping("/{urlPattern}")
-    public ResponseEntity<ModuleFunc> getModuleByUrlPattern(@PathVariable String urlPattern) {
-        ModuleFunc module = moduleService.findByUrlPattern(urlPattern);
-        return ResponseEntity.ok(module);
+    public ModuleFunc getModuleByUrlPattern(@PathVariable String urlPattern) {
+        return moduleService.findByUrlPattern(urlPattern);
     }
     
     // DELETE: Xóa module
     @DeleteMapping("/{urlPattern}")
-    public ResponseEntity<Void> deleteModule(@PathVariable String urlPattern) {
+    public void deleteModule(@PathVariable String urlPattern) {
         moduleService.deleteModule(urlPattern);
-        return ResponseEntity.ok().build();
     }
     
 //    // GET: Lấy modules với permissions

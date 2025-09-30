@@ -32,45 +32,27 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    AuthenticationEntryPoint customEntryPoint,
                                                    AccessDeniedHandler customAccessDeniedHandler) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/forgot-password").permitAll()
-                        .requestMatchers("/api/auth/verify").permitAll()
-                        .requestMatchers("/api/auth/verify/otp").permitAll()
-                        .requestMatchers("/api/auth/newPassword").permitAll()
-                        .requestMatchers("/api/accounts/register").permitAll()
-                        .requestMatchers("/api/permission/**").permitAll()
-                        .requestMatchers("/email/**").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v2/api-docs",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/favicon.ico"
-                        ).permitAll()
-
-
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers(SecurityConstants.getAllWhitelistedUrls()).permitAll()
                         .anyRequest().authenticated()
-
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
-                ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-//                .oauth2ResourceServer(oauth2 -> oauth2.jwt(
-//                        jwtConfigurer -> jwtConfigurer.authenticationManager(authenticationManager -> authenticationManager)));
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 

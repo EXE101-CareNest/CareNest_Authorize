@@ -44,7 +44,9 @@ server:
   port: 8080
 
 app:
-  version: 1.0
+  version: 1.0.0
+  response:
+    auto-wrap: true
 
 management:
   endpoints:
@@ -95,4 +97,4 @@ eureka:
 #        format_sql: true
 #  profiles:
 #    active: default
-#
+

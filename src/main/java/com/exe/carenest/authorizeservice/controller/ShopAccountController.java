@@ -10,8 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,16 +31,16 @@ public class ShopAccountController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Void> createShopAccount(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createShopAccount(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
         accountService.createAccount(request, "ROLE_SHOP");
         String otpToken = otpService.sendRegistrationOtp(request.email());
         response.setHeader("X-Key-APT", otpToken);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/information")
-    public ResponseEntity<ShopResponse> shopRegister(@Valid @RequestBody ShopRegistrationRequest request) {
-        ShopResponse shopResponse = shopService.shopRegister(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(shopResponse);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ShopResponse shopRegister(@Valid @RequestBody ShopRegistrationRequest request) {
+        return shopService.shopRegister(request);
     }
 }

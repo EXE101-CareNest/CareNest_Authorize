@@ -4,7 +4,6 @@ import com.exe.carenest.authorizeservice.auth.model.UserRole;
 import com.exe.carenest.authorizeservice.dto.request.CreateRoleRequest;
 import com.exe.carenest.authorizeservice.service.IUserRoleService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,29 +18,25 @@ public class UserRoleController {
     
     // GET: Lấy tất cả roles
     @GetMapping
-    public ResponseEntity<List<UserRole>> getAllRoles() {
-        List<UserRole> roles = userRoleService.getAllRoles();
-        return ResponseEntity.ok(roles);
+    public List<UserRole> getAllRoles() {
+        return userRoleService.getAllRoles();
     }
     
     // POST: Thêm role mới
     @PostMapping
-    public ResponseEntity<UserRole> createRole(@RequestBody CreateRoleRequest request) {
-        UserRole role = userRoleService.createRole(request.name());
-        return ResponseEntity.ok(role);
+    public UserRole createRole(@RequestBody CreateRoleRequest request) {
+        return userRoleService.createRole(request.name());
     }
     
     // GET: Lấy role theo tên
     @GetMapping("/{name}")
-    public ResponseEntity<UserRole> getRoleByName(@PathVariable String name) {
-        UserRole role = userRoleService.findByName(name);
-        return ResponseEntity.ok(role);
+    public UserRole getRoleByName(@PathVariable String name) {
+        return userRoleService.findByName(name);
     }
     
     // DELETE: Xóa role
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable Integer id) {
+    public void deleteRole(@PathVariable Integer id) {
         userRoleService.deleteRole(id);
-        return ResponseEntity.ok().build();
     }
 }

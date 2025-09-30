@@ -34,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("Authorization header: {}", header);
         if(header !=  null && header.startsWith("X-Key-APT")){
             chain.doFilter(request, response);
+            return;
         }
 
         if (header != null && header.startsWith("Bearer ")) {

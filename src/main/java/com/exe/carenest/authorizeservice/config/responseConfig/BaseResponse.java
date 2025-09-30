@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,6 +23,10 @@ public class BaseResponse<T> {
     private T data;
 
     // Constructors, Getters/Setters
+
+    public static <T> BaseResponse<T> success(String message, int code, MetaInfo meta, String requestId, String version, T data) {
+        return new BaseResponse<>("success", code, message, data, meta, requestId, version);
+    }
 
     public static <T> BaseResponse<T> success(T data, String message, int code, MetaInfo meta, String requestId, String version) {
         return new BaseResponse<>("success", code, message, data, meta, requestId, version);
@@ -44,5 +49,15 @@ public class BaseResponse<T> {
         this.requestId = requestId;
         this.version = version;
         this.timestamp = Instant.now().toString();
+    }
+
+    // Utility method for simple success response with data only
+    public static <T> BaseResponse<T> of(T data) {
+        return new BaseResponse<>("success", 200, "Success", data, null, UUID.randomUUID().toString(), "1.0.0");
+    }
+
+    // Utility method for success response with custom message
+    public static <T> BaseResponse<T> of(T data, String message) {
+        return new BaseResponse<>("success", 200, message, data, null, UUID.randomUUID().toString(), "1.0.0");
     }
 }

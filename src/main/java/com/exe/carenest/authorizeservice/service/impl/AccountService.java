@@ -133,11 +133,12 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public void deleteAccount(String accountId) {
+    public boolean deleteAccount(String accountId) {
         Account account = userRepository.findById(accountId)
                 .orElseThrow(UserNotFoundException::new);
         account.set_active(false);
         userRepository.save(account);
+        return true;
     }
 
     @Override
@@ -152,6 +153,12 @@ public class AccountService implements IAccountService {
         Account account = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
         return UserMapper.toAccountResponse(account);
+    }
+
+    @Override
+    public Account findByIdAccount(String id) {
+        return userRepository.findById(id)
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Override

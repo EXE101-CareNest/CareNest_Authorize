@@ -15,5 +15,7 @@ public record ShopRegistrationRequest(
         
         String imgUrl,
         
-        String workingDays
+        String workingDays,
+
+        String shopId
 ) {}

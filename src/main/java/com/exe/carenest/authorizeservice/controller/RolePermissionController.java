@@ -6,7 +6,6 @@ import com.exe.carenest.authorizeservice.dto.request.UpdateRolePermissionRequest
 import com.exe.carenest.authorizeservice.dto.response.RolePermissionDisplayDto;
 import com.exe.carenest.authorizeservice.service.IRolePermissionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,39 +21,36 @@ public class RolePermissionController {
     
     // PUT: Cập nhật permission
     @PutMapping("/{id}")
-    public ResponseEntity<RolePermission> updateRolePermission(
+    public RolePermission updateRolePermission(
             @PathVariable Long id, 
             @RequestBody UpdateRolePermissionRequest request) {
-        RolePermission permission = rolePermissionService.updateRolePermission(
+        return rolePermissionService.updateRolePermission(
             id, 
             request.httpPermission()
         );
-        return ResponseEntity.ok(permission);
     }
     
     // DELETE: Xóa permission
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRolePermission(@PathVariable Long id) {
+    public void deleteRolePermission(@PathVariable Long id) {
         rolePermissionService.deleteRolePermission(id);
-        return ResponseEntity.ok().build();
     }
     
     // POST: Batch update permissions cho role
     @PostMapping("/batch-update")
-    public ResponseEntity<String> batchUpdatePermissions(@RequestBody BatchUpdatePermissionsRequest request) {
+    public String batchUpdatePermissions(@RequestBody BatchUpdatePermissionsRequest request) {
         rolePermissionService.batchUpdatePermissions(
             request.roleName(),
             request.moduleUrlPattern(),
             request.httpPermissions()
         );
-        return ResponseEntity.ok("Permissions updated successfully");
+        return "Permissions updated successfully";
     }
     
     // GET: Lấy permissions display cho role (như trong UI)
     @GetMapping("/display/{roleName}")
-    public ResponseEntity<List<RolePermissionDisplayDto>> getRolePermissionsDisplay(@PathVariable String roleName) {
-        List<RolePermissionDisplayDto> display = rolePermissionService.getRolePermissionsDisplay(roleName);
-        return ResponseEntity.ok(display);
+    public List<RolePermissionDisplayDto> getRolePermissionsDisplay(@PathVariable String roleName) {
+        return rolePermissionService.getRolePermissionsDisplay(roleName);
     }
 
 }

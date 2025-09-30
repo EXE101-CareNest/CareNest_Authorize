@@ -3,6 +3,7 @@ package com.exe.carenest.authorizeservice.service.impl;
 import com.exe.carenest.authorizeservice.auth.model.Account;
 import com.exe.carenest.authorizeservice.auth.model.RegisterStatus;
 import com.exe.carenest.authorizeservice.dto.request.ShopRegistrationRequest;
+import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.exception.ApiException;
 import com.exe.carenest.authorizeservice.exception.ShopNotFoundException;
 import com.exe.carenest.authorizeservice.exception.InvalidShopCredentialsException;
@@ -92,13 +93,13 @@ public class ShopService implements IShopService {
             }
             
             // Lấy current user từ security context
-            Account currentUser = accountService.getCurrentUser();
+            Account currentUser = accountService.findByIdAccount(request.shopId());
             
             // Kiểm tra user đã verify eKYC chưa
-            if (currentUser.getRegisterStatus() != RegisterStatus.EKYC_VERIFIED) {
-                throw new ShopRegistrationException("Tài khoản chưa verify eKYC");
-            }
-            
+//            if (currentUser.getRegisterStatus() != RegisterStatus.EKYC_VERIFIED) {
+//                throw new ShopRegistrationException("Tài khoản chưa verify eKYC");
+//            }
+//
             // Kiểm tra tên shop đã tồn tại chưa
             if (shopRepository.findByShopName(request.shopName()).isPresent()) {
                 throw new DuplicateShopNameException("Tên cửa hàng '" + request.shopName() + "' đã tồn tại");

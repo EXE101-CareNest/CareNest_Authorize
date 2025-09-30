@@ -36,6 +36,7 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
                         new Server().url("http://localhost:8080").description("Local Development Server"),
+                        new Server().url("http://localhost:8082").description("Local Development Server"),
                         new Server().url("http://103.252.95.124:8080").description("Production Server")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))

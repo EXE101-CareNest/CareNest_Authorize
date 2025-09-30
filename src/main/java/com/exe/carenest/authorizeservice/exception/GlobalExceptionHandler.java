@@ -1,5 +1,6 @@
 package com.exe.carenest.authorizeservice.exception;
 
+import com.exe.carenest.authorizeservice.config.SkipWrap;
 import com.exe.carenest.authorizeservice.config.responseConfig.BaseResponse;
 import com.exe.carenest.authorizeservice.config.responseConfig.MetaInfo;
 import com.exe.carenest.authorizeservice.config.responseConfig.MetaBuilder;
@@ -31,7 +32,55 @@ public class GlobalExceptionHandler {
     @Value("${app.version:1.0.0}")
     private String version;
 
+    @ExceptionHandler(ApiExceptionWithHeaders.class)
+    @SkipWrap
+    public ResponseEntity<BaseResponse<?>> handleApiExceptionWithHeaders(ApiExceptionWithHeaders ex, HttpServletRequest request) {
+        MetaInfo meta = metaBuilder.fromRequest(request);
+        meta.setDetail(ex.getDetail());
+        meta.setTraceId(ex.getCode());
+
+        log.error("ApiExceptionWithHeaders traceId={} message={}", ex.getCode(), ex.getMessage(), ex);
+
+        var responseBuilder = ResponseEntity
+                .status(ex.getStatus());
+
+        // Add headers if present
+        if (ex.getHeaders() != null) {
+            ex.getHeaders().forEach(responseBuilder::header);
+        }
+
+        return responseBuilder.body(BaseResponse.success(
+                ex.getMessage(),
+                ex.getStatus(),
+                meta,
+                UUID.randomUUID().toString(),
+                version,
+                null
+        ));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    @SkipWrap
+    public ResponseEntity<BaseResponse<?>> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+        MetaInfo meta = metaBuilder.fromRequest(request);
+        meta.setDetail(ex.getMessage());
+        meta.setTraceId("UNAUTHORIZED");
+
+        log.error("Unauthorized access traceId=UNAUTHORIZED message={}", ex.getMessage(), ex);
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(BaseResponse.fail(
+                        ex.getMessage(),
+                        HttpStatus.UNAUTHORIZED.value(),
+                        meta,
+                        UUID.randomUUID().toString(),
+                        version
+                ));
+    }
+
     @ExceptionHandler(ApiException.class)
+    @SkipWrap
     public ResponseEntity<BaseResponse<?>> handleApiException(ApiException ex, HttpServletRequest request) {
         MetaInfo meta = metaBuilder.fromRequest(request);
         meta.setDetail(ex.getDetail());
@@ -51,6 +100,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    @SkipWrap
     public ResponseEntity<BaseResponse<?>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
@@ -73,6 +123,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @SkipWrap
     public ResponseEntity<BaseResponse<?>> handleHttpMethod(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         MetaInfo meta = metaBuilder.fromRequest(request);
         meta.setDetail("Method not allowed: " + ex.getMethod());
@@ -93,6 +144,7 @@ public class GlobalExceptionHandler {
 
     // Bổ sung xử lý AccessDeniedException (403 Forbidden)
     @ExceptionHandler(AccessDeniedException.class)
+    @SkipWrap
     public ResponseEntity<BaseResponse<?>> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         MetaInfo meta = metaBuilder.fromRequest(request);
         meta.setDetail("Access denied");
@@ -113,6 +165,7 @@ public class GlobalExceptionHandler {
 
     // Xử lý HttpMediaTypeNotSupportedException (415 Unsupported Media Type)
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    @SkipWrap
     public ResponseEntity<BaseResponse<?>> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
         MetaInfo meta = metaBuilder.fromRequest(request);
         meta.setDetail("Unsupported media type: " + ex.getContentType());
@@ -133,6 +186,7 @@ public class GlobalExceptionHandler {
 
     // Xử lý ResponseStatusException (được ném trong controller để trả status code động)
     @ExceptionHandler(ResponseStatusException.class)
+    @SkipWrap
     public ResponseEntity<BaseResponse<?>> handleResponseStatusException(ResponseStatusException ex, HttpServletRequest request) {
         MetaInfo meta = metaBuilder.fromRequest(request);
         meta.setDetail(ex.getReason());
@@ -153,6 +207,7 @@ public class GlobalExceptionHandler {
 
     // Bắt chung tất cả các Exception còn lại
     @ExceptionHandler(Exception.class)
+    @SkipWrap
     public ResponseEntity<BaseResponse<?>> handleUnknown(Exception ex, HttpServletRequest request) {
         MetaInfo meta = metaBuilder.fromRequest(request);
         meta.setDetail(ex.getMessage());

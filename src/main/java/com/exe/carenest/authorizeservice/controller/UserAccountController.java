@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,21 +24,20 @@ public class UserAccountController {
     }
 
     @PostMapping("/register/customer")
-    public ResponseEntity<Void> createCustomerAccount(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createCustomerAccount(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
         accountService.createAccount(request, "ROLE_USER");
         String otpToken = otpService.sendRegistrationOtp(request.email());
         response.setHeader("X-Key-APT", otpToken);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<AccountResponse> findByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(accountService.findByUsernameResponse(username));
+    public AccountResponse findByUsername(@PathVariable String username) {
+        return accountService.findByUsernameResponse(username);
     }
 
     @PutMapping("/password")
-    public ResponseEntity<Void> updatePassword(@RequestBody NewPasswordRequest newPasswordRequest) {
+    public void updatePassword(@RequestBody NewPasswordRequest newPasswordRequest) {
         accountService.updatePassword(newPasswordRequest.email(), newPasswordRequest.password());
-        return ResponseEntity.ok().build();
     }
 }

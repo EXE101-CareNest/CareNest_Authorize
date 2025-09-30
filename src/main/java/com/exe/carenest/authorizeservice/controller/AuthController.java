@@ -7,6 +7,8 @@ import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
 import com.exe.carenest.authorizeservice.dto.request.VerifyOtpRequest;
 import com.exe.carenest.authorizeservice.dto.response.LoginResponse;
 import com.exe.carenest.authorizeservice.dto.response.TokenResponse;
+import com.exe.carenest.authorizeservice.exception.ApiException;
+import com.exe.carenest.authorizeservice.exception.BadRequestException;
 import com.exe.carenest.authorizeservice.service.IAccountService;
 import com.exe.carenest.authorizeservice.service.IAuthService;
 import com.exe.carenest.authorizeservice.service.OTPService;
@@ -15,7 +17,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,15 +35,15 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "User logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+    public String logout(@RequestHeader("Authorization") String token) {
         String jwtToken = token.replace("Bearer ", "");
         authService.logout(jwtToken);
         SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("Logged out successfully");
+        return "Logged out successfully";
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public LoginResponse login(@RequestBody LoginRequest request, HttpServletResponse response) {
         TokenResponse tokenResponse = authService.login(request);
 
         // Tạo cookie chứa refresh token
@@ -57,28 +58,28 @@ public class AuthController {
 
         log.info("Login");
         // Trả về accessToken trong body
-        return ResponseEntity.ok(new LoginResponse(tokenResponse.accessToken(), tokenResponse.refreshToken(), request.username()));
+        return new LoginResponse(tokenResponse.accessToken(), tokenResponse.refreshToken(), request.username());
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<?> verify(@RequestHeader("Authorization") String token) {
+    public Map<String, Boolean> verify(@RequestHeader("Authorization") String token) {
         boolean valid = authService.verify(token.replace("Bearer ", ""));
-        return ResponseEntity.ok(Map.of("valid", valid));
+        return Map.of("valid", valid);
     }
 
     @GetMapping("/authorize")
-    public ResponseEntity<?> authorize(@RequestHeader("Authorization") String token,
+    public Map<String, Boolean> authorize(@RequestHeader("Authorization") String token,
                                        @RequestParam String role) {
         boolean allowed = authService.authorize(token.replace("Bearer ", ""), role);
-        return ResponseEntity.ok(Map.of("authorized", allowed));
+        return Map.of("authorized", allowed);
     }
 
     @PostMapping("/forgot-password")
     @Operation(summary = "Request password reset")
-    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request, HttpServletResponse response) {
+    public String forgotPassword(@RequestBody ForgotPasswordRequest request, HttpServletResponse response) {
         // Validate input
         if (request == null || request.email() == null || request.email().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Email không được để trống");
+            throw new BadRequestException("Email không được để trống");
         }
 
         try {
@@ -86,23 +87,23 @@ public class AuthController {
             // This prevents email enumeration attacks
             String otpToken = otpService.sendOtp(request.email());
             response.setHeader("X-Key-APT", otpToken);
-            return ResponseEntity.ok("Nếu email tồn tại trong hệ thống, mã OTP đã được gửi");
+            return "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi";
         } catch (Exception e) {
             log.error("Error in forgot password for email: {}", request.email(), e);
-            return ResponseEntity.internalServerError().body("Có lỗi xảy ra. Vui lòng thử lại sau");
+            throw new ApiException("INTERNAL_ERROR", "Có lỗi xảy ra. Vui lòng thử lại sau", 500);
         }
     }
 
     @PostMapping("/verify/otp")
     @Operation(summary = "Verify OTP for password reset")
-    public ResponseEntity<String> verifyOtpForPasswordReset(@RequestHeader("X-Key-APT") String token, @RequestBody VerifyOtpRequest otpRequest) {
+    public String verifyOtpForPasswordReset(@RequestHeader("X-Key-APT") String token, @RequestBody VerifyOtpRequest otpRequest, HttpServletResponse response) {
         // Validate inputs
         if (token == null || token.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Token OTP không được để trống");
+            throw new BadRequestException("Token OTP không được để trống");
         }
 
         if (otpRequest == null || otpRequest.otp() == null || otpRequest.otp().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Mã OTP không được để trống");
+            throw new BadRequestException("Mã OTP không được để trống");
         }
 
         try {
@@ -115,87 +116,87 @@ public class AuthController {
                 String passwordResetToken = jwtProvider.generateTokenByEmail(otpRequest.email(),
                         new Date(System.currentTimeMillis() + (15 * 60 * 1000))); // 15 minutes validity
 
-                return ResponseEntity.ok().header("X-Password-Reset-Token", passwordResetToken)
-                        .body("OTP xác thực thành công. Bạn có thể đặt lại mật khẩu");
+                response.setHeader("X-Password-Reset-Token", passwordResetToken);
+                return "OTP xác thực thành công. Bạn có thể đặt lại mật khẩu";
             } else {
-                return ResponseEntity.badRequest().body("Mã OTP không chính xác");
+                throw new BadRequestException("Mã OTP không chính xác");
             }
         } catch (Exception e) {
             log.error("Error verifying OTP: ", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            throw new BadRequestException(e.getMessage());
         }
     }
 
     @PostMapping("/newPassword")
     @Operation(summary = "Reset password with new password")
-    public ResponseEntity<String> resetPassword(@RequestHeader("X-Password-Reset-Token") String resetToken,
+    public String resetPassword(@RequestHeader("X-Password-Reset-Token") String resetToken,
                                                 @RequestBody NewPasswordRequest newPasswordRequest) {
         // Validate inputs
         if (resetToken == null || resetToken.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Token đặt lại mật khẩu không được để trống");
+            throw new BadRequestException("Token đặt lại mật khẩu không được để trống");
         }
 
         if (newPasswordRequest == null) {
-            return ResponseEntity.badRequest().body("Thông tin mật khẩu không hợp lệ");
+            throw new BadRequestException("Thông tin mật khẩu không hợp lệ");
         }
 
         if (newPasswordRequest.password() == null || newPasswordRequest.password().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Mật khẩu mới không được để trống");
+            throw new BadRequestException("Mật khẩu mới không được để trống");
         }
 
         if (newPasswordRequest.reEnterPassword() == null || newPasswordRequest.reEnterPassword().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Xác nhận mật khẩu không được để trống");
+            throw new BadRequestException("Xác nhận mật khẩu không được để trống");
         }
 
         // Validate password confirmation
         if (!newPasswordRequest.password().equals(newPasswordRequest.reEnterPassword())) {
-            return ResponseEntity.badRequest().body("Mật khẩu xác nhận không khớp");
+            throw new BadRequestException("Mật khẩu xác nhận không khớp");
         }
 
         // Validate password strength
         if (newPasswordRequest.password().length() < 6) {
-            return ResponseEntity.badRequest().body("Mật khẩu phải có ít nhất 6 ký tự");
+            throw new BadRequestException("Mật khẩu phải có ít nhất 6 ký tự");
         }
 
         try {
             // Validate reset token and extract email
             if (!jwtProvider.validateToken(resetToken)) {
-                return ResponseEntity.badRequest().body("Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
+                throw new BadRequestException("Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
             }
 
             String email = jwtProvider.getSubject(resetToken);
             if (email == null || email.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Không thể xác định email từ token");
+                throw new BadRequestException("Không thể xác định email từ token");
             }
 
             // Update password
             accountService.updatePassword(email, newPasswordRequest.password());
 
             log.info("Password reset successful for email: {}", email);
-            return ResponseEntity.ok("Đặt lại mật khẩu thành công");
+            return "Đặt lại mật khẩu thành công";
         } catch (Exception e) {
             log.error("Error resetting password: ", e);
 
             if (e.getMessage().contains("expired")) {
-                return ResponseEntity.badRequest().body("Token đặt lại mật khẩu đã hết hạn");
+                throw new BadRequestException("Token đặt lại mật khẩu đã hết hạn");
             } else if (e.getMessage().contains("invalid")) {
-                return ResponseEntity.badRequest().body("Token đặt lại mật khẩu không hợp lệ");
+                throw new BadRequestException("Token đặt lại mật khẩu không hợp lệ");
             } else {
-                return ResponseEntity.internalServerError().body("Có lỗi xảy ra khi đặt lại mật khẩu");
+                throw new ApiException("INTERNAL_ERROR", "Có lỗi xảy ra khi đặt lại mật khẩu", 500);
             }
         }
     }
 
     @PostMapping("/registerVerifyToken")
     @Operation(summary = "Verify email after registration")
-    public ResponseEntity<String> registerVerifyToken(@RequestHeader("X-Key-APT") String token, @RequestBody VerifyOtpRequest otpRequest) {
+    public String registerVerifyToken(@RequestHeader("X-Key-APT") String token, @RequestBody VerifyOtpRequest otpRequest) {
         // Validate inputs
         if (token == null || token.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Token OTP không được để trống");
+            throw new BadRequestException("Token OTP không được để trống");
         }
 
         if (otpRequest == null || otpRequest.otp() == null || otpRequest.otp().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Mã OTP không được để trống");
+            throw new BadRequestException("Mã OTP không được để trống");
         }
 
         try {
@@ -206,31 +207,31 @@ public class AuthController {
                 // Extract email from JWT token to get the account
                 String email = jwtProvider.getSubject(token);
                 if (email == null || email.trim().isEmpty()) {
-                    return ResponseEntity.badRequest().body("Không thể xác định email từ token");
+                    throw new BadRequestException("Không thể xác định email từ token");
                 }
 
                 // Activate account after successful email verification
                 accountService.activateAccountByEmail(email);
 
                 log.info("Email verification successful for: {}", email);
-                return ResponseEntity.ok("Xác thực email thành công. Tài khoản đã được kích hoạt");
+                return "Xác thực email thành công. Tài khoản đã được kích hoạt";
             } else {
-                return ResponseEntity.badRequest().body("Mã OTP không chính xác");
+                throw new BadRequestException("Mã OTP không chính xác");
             }
         } catch (Exception e) {
             log.error("Error verifying registration OTP: ", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            throw new BadRequestException(e.getMessage());
         }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refresh(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(authService.refresh(body.get("refreshToken")));
+    public TokenResponse refresh(@RequestBody Map<String, String> body) {
+        return authService.refresh(body.get("refreshToken"));
     }
 
     @PostMapping("/revoke")
-    public ResponseEntity<?> revoke(@RequestBody Map<String, String> body) {
+    public Map<String, Boolean> revoke(@RequestBody Map<String, String> body) {
         authService.revokeRefreshToken(body.get("refreshToken"));
-        return ResponseEntity.ok(Map.of("revoked", true));
+        return Map.of("revoked", true);
     }
 }
