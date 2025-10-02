@@ -2,23 +2,30 @@ package com.exe.carenest.authorizeservice.service;
 
 import com.exe.carenest.authorizeservice.config.JwtProvider;
 import com.exe.carenest.authorizeservice.dto.request.VerifyOtpRequest;
-import com.exe.carenest.authorizeservice.repository.UserRepository;
-import com.exe.carenest.authorizeservice.service.impl.RedisService;
-import com.exe.carenest.authorizeservice.ultil.CryptoHelper;
 import com.exe.carenest.authorizeservice.exception.OTPException;
 import com.exe.carenest.authorizeservice.exception.OTPExpiredException;
 import com.exe.carenest.authorizeservice.exception.OTPVerificationException;
+import com.exe.carenest.authorizeservice.service.impl.RedisService;
+import com.exe.carenest.authorizeservice.ultil.CryptoHelper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OTPService {
 
     @Value("${brevo.api.key}")
@@ -35,23 +42,41 @@ public class OTPService {
 
     private final JwtProvider jwtProvider;
 
-    private final UserRepository userRepository;
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
+    );
+
+    private void validateEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new OTPException("Email không được để trống");
+        }
+        if (!EMAIL_PATTERN.matcher(email.trim().toLowerCase()).matches()) {
+            throw new OTPException("Định dạng email không hợp lệ");
+        }
+    }
 
     public String sendOtp(String toEmail) {
+
+        // Rate limiting check
+        String emailRateKey = "otp_send:" + toEmail;
+        Integer attempts = (Integer) redisCache.get(emailRateKey);
+
+        if (attempts != null && attempts >= 3) {
+            throw new OTPException("Quá nhiều yêu cầu OTP. Chờ 15 phút");
+        }
+
+        // Increment attempts
+        redisCache.save(emailRateKey, (attempts == null ? 1 : attempts + 1),
+                900, TimeUnit.SECONDS); // 15 minutes
+
         // Validate input
         if (toEmail == null || toEmail.trim().isEmpty()) {
             throw new OTPException("Email không được để trống");
         }
         
         // Basic email format validation
-        if (!toEmail.contains("@") || !toEmail.contains(".")) {
-            throw new OTPException("Định dạng email không hợp lệ");
-        }
-
-        // Note: Removed email existence check to support both registration and forgot password flows
-        // For registration: email should not exist yet
-        // For forgot password: email should exist
-        // We'll let the calling service handle email existence validation
+        validateEmail(toEmail);
         
         try {
             String otpCode = helper.generateOtp();
@@ -125,7 +150,7 @@ public class OTPService {
             redisCache.save("otp:" + otpToken, otpCode, otpExpiredTime, TimeUnit.SECONDS);
             
             // Log for debugging (remove in production)
-            System.out.println("OTP sent to: " + toEmail + ", token: " + otpToken);
+            log.info("OTP sent to: " + toEmail + ", token: " + otpToken);
             return otpToken;
         } catch (Exception e) {
             if (e instanceof OTPException) {
@@ -169,7 +194,14 @@ public class OTPService {
         if (!verifyOtpRequest.otp().matches("\\d{6}")) {
             throw new OTPVerificationException("Mã OTP phải là 6 chữ số");
         }
-        
+
+        String attemptKey = "verify_attempts:" + token;
+        Integer attempts = (Integer) redisCache.get(attemptKey);
+
+        if (attempts != null && attempts >= 5) {
+            throw new OTPVerificationException("Quá nhiều lần thử. Token bị khóa");
+        }
+
         try {
             // Validate JWT token first
             if (!jwtProvider.validateToken(token)) {
@@ -183,7 +215,13 @@ public class OTPService {
             }
 
             // Verify OTP code
-            if (!verifyOtpRequest.otp().equals(storedOtpCode)) {
+            if (!MessageDigest.isEqual(
+                    verifyOtpRequest.otp().getBytes("UTF-8"),
+                    storedOtpCode.getBytes("UTF-8"))) {
+
+                //Increase if fail
+                redisCache.save(attemptKey, (attempts == null ? 1 : attempts + 1),
+                        300, TimeUnit.SECONDS);
                 throw new OTPVerificationException("Mã OTP không chính xác");
             }
             
@@ -193,7 +231,11 @@ public class OTPService {
             return true;
         } catch (Exception e) {
             if (e instanceof OTPException) {
-                throw e; // Re-throw custom exceptions
+                try {
+                    throw e; // Re-throw custom exceptions
+                } catch (UnsupportedEncodingException ex) {
+
+                }
             }
             
             // Handle JWT validation exceptions
@@ -293,7 +335,7 @@ public class OTPService {
             redisCache.save("otp:" + otpToken, otpCode, otpExpiredTime, TimeUnit.SECONDS);
             
             // Log for debugging (remove in production)
-            System.out.println("Registration OTP sent to: " + toEmail + ", token: " + otpToken);
+            log.info("Registration OTP sent to: " + toEmail + ", token: " + otpToken);
             return otpToken;
         } catch (Exception e) {
             if (e instanceof OTPException) {

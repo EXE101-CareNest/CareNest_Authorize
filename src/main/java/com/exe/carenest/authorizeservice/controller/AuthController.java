@@ -12,6 +12,7 @@ import com.exe.carenest.authorizeservice.exception.BadRequestException;
 import com.exe.carenest.authorizeservice.service.IAccountService;
 import com.exe.carenest.authorizeservice.service.IAuthService;
 import com.exe.carenest.authorizeservice.service.OTPService;
+import com.exe.carenest.authorizeservice.service.impl.RedisService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +33,8 @@ public class AuthController {
     private final IAccountService accountService;
     private final OTPService otpService;
     private final JwtProvider jwtProvider;
+    private final RedisService redisCache;
+
 
     @PostMapping("/logout")
     @Operation(summary = "User logout")
@@ -236,9 +239,23 @@ public class AuthController {
     }
 
     @PostMapping("/re-send-otp-code")
-    public String reSendOtpCode(@RequestParam String email, HttpServletResponse response) {
-        String otpToken = otpService.sendRegistrationOtp(email);
-        response.setHeader("X-Key-APT", otpToken);
+    public String reSendOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String email, HttpServletResponse response) {
+        // Validate token hiện tại
+        if (!jwtProvider.validateToken(currentToken)) {
+            throw new BadRequestException("Token không hợp lệ hoặc đã hết hạn");
+        }
+
+        String tokenEmail = jwtProvider.getSubject(currentToken);
+        if (!tokenEmail.equals(email)) {
+            throw new BadRequestException("Email không khớp với token");
+        }
+
+        // Invalidate token cũ
+        redisCache.delete("otp:" + currentToken);
+
+        // Tạo OTP mới
+        String newOtpToken = otpService.sendRegistrationOtp(email);
+        response.setHeader("X-Key-APT", newOtpToken);
         return "đã gửi lại mật khẩu";
     }
 }
