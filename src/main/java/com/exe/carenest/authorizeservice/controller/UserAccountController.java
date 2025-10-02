@@ -31,6 +31,10 @@ public class UserAccountController {
         response.setHeader("X-Key-APT", otpToken);
     }
 
+
+
+
+
     @GetMapping("/username/{username}")
     public AccountResponse findByUsername(@PathVariable String username) {
         return accountService.findByUsernameResponse(username);
@@ -40,4 +44,7 @@ public class UserAccountController {
     public void updatePassword(@RequestBody NewPasswordRequest newPasswordRequest) {
         accountService.updatePassword(newPasswordRequest.email(), newPasswordRequest.password());
     }
+
+
+
 }

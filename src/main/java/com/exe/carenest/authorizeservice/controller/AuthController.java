@@ -48,10 +48,10 @@ public class AuthController {
 
         // Tạo cookie chứa refresh token
         Cookie refreshTokenCookie = new Cookie("refreshToken", tokenResponse.refreshToken());
-        refreshTokenCookie.setHttpOnly(true);                   // Không cho JS truy cập
-        refreshTokenCookie.setSecure(true);                     // Chỉ gửi qua HTTPS
-        refreshTokenCookie.setPath("/");                        // Đường dẫn áp dụng
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);         // Hết hạn trong 7 ngày (đơn vị: giây)
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
 
         // Thêm cookie vào response
         response.addCookie(refreshTokenCookie);
@@ -108,7 +108,7 @@ public class AuthController {
 
         try {
             // Verify OTP
-            boolean isValid = otpService.verifyOTP(token, otpRequest.otp());
+            boolean isValid = otpService.verifyOTP(token, otpRequest);
 
             if (isValid) {
                 // Security improvement: Generate a new secure token for password reset
@@ -201,7 +201,7 @@ public class AuthController {
 
         try {
             // Verify OTP
-            boolean isValid = otpService.verifyOTP(token, otpRequest.otp());
+            boolean isValid = otpService.verifyOTP(token, otpRequest);
 
             if (isValid) {
                 // Extract email from JWT token to get the account
@@ -233,5 +233,12 @@ public class AuthController {
     public Map<String, Boolean> revoke(@RequestBody Map<String, String> body) {
         authService.revokeRefreshToken(body.get("refreshToken"));
         return Map.of("revoked", true);
+    }
+
+    @PostMapping("/re-send-otp-code")
+    public String reSendOtpCode(@RequestBody  String email, HttpServletResponse response) {
+        String otpToken = otpService.sendRegistrationOtp(email);
+        response.setHeader("X-Key-APT", otpToken);
+        return "đã gửi lại mật khẩu";
     }
 }

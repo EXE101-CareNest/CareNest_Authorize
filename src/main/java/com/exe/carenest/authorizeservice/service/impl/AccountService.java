@@ -67,6 +67,15 @@ public class AccountService implements IAccountService {
     }
 
     @Override
+    public void activeAccount(String email){
+        Account account = userRepository.findByEmail(email).orElseThrow(() -> new ApiException("ACCOUNT_NOT_FOUND", "Account not found: " + email, 404));
+
+
+        account.set_active(true);
+        userRepository.save(account);
+    }
+
+    @Override
     public Account getAccountByOTPToken(String token) {
         if (token == null || token.isEmpty()) {
             throw new InvalidTokenException("Token không được cung cấp");

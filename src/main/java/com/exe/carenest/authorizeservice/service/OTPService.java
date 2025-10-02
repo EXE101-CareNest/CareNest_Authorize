@@ -1,6 +1,7 @@
 package com.exe.carenest.authorizeservice.service;
 
 import com.exe.carenest.authorizeservice.config.JwtProvider;
+import com.exe.carenest.authorizeservice.dto.request.VerifyOtpRequest;
 import com.exe.carenest.authorizeservice.repository.UserRepository;
 import com.exe.carenest.authorizeservice.service.impl.RedisService;
 import com.exe.carenest.authorizeservice.ultil.CryptoHelper;
@@ -154,18 +155,18 @@ public class OTPService {
         }
     }
 
-    public boolean verifyOTP(String token, String otpCode) {
+    public boolean verifyOTP(String token, VerifyOtpRequest verifyOtpRequest) {
         // Validate inputs
         if (token == null || token.trim().isEmpty()) {
             throw new OTPException("Token OTP không được để trống");
         }
         
-        if (otpCode == null || otpCode.trim().isEmpty()) {
+        if (verifyOtpRequest == null || verifyOtpRequest.otp().trim().isEmpty()) {
             throw new OTPVerificationException("Mã OTP không được để trống");
         }
         
         // Validate OTP format (should be 6 digits)
-        if (!otpCode.matches("\\d{6}")) {
+        if (!verifyOtpRequest.otp().matches("\\d{6}")) {
             throw new OTPVerificationException("Mã OTP phải là 6 chữ số");
         }
         
@@ -181,8 +182,16 @@ public class OTPService {
                 throw new OTPExpiredException("Mã OTP đã hết hạn hoặc không tồn tại");
             }
 
+            //Check email that correct with saving as subject
+            String  emailSubject = jwtProvider.getSubject(token);
+
+            if(!emailSubject.equals(verifyOtpRequest.email())){
+                throw   new OTPException("Something wrong");
+            }
+
+
             // Verify OTP code
-            if (!otpCode.equals(storedOtpCode)) {
+            if (!verifyOtpRequest.otp().equals(storedOtpCode)) {
                 throw new OTPVerificationException("Mã OTP không chính xác");
             }
             

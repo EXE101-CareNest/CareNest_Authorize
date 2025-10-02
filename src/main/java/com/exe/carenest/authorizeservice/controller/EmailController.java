@@ -33,7 +33,7 @@ public class EmailController {
     @SkipWrap
     public String verify(@RequestHeader("X-Key-APT") String token, @RequestBody
     VerifyOtpRequest otpRequest) {
-        if( otpService.verifyOTP(token, otpRequest.otp())){
+        if( otpService.verifyOTP(token, otpRequest)){
             return "Correct otp";
         }
 
