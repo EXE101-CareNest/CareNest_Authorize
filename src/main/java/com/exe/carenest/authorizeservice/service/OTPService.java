@@ -182,14 +182,6 @@ public class OTPService {
                 throw new OTPExpiredException("Mã OTP đã hết hạn hoặc không tồn tại");
             }
 
-            //Check email that correct with saving as subject
-            String  emailSubject = jwtProvider.getSubject(token);
-
-            if(!emailSubject.equals(verifyOtpRequest.email())){
-                throw   new OTPException("Something wrong");
-            }
-
-
             // Verify OTP code
             if (!verifyOtpRequest.otp().equals(storedOtpCode)) {
                 throw new OTPVerificationException("Mã OTP không chính xác");
