@@ -236,7 +236,7 @@ public class AuthController {
     }
 
     @PostMapping("/re-send-otp-code")
-    public String reSendOtpCode(@RequestBody  String email, HttpServletResponse response) {
+    public String reSendOtpCode(@RequestParam String email, HttpServletResponse response) {
         String otpToken = otpService.sendRegistrationOtp(email);
         response.setHeader("X-Key-APT", otpToken);
         return "đã gửi lại mật khẩu";
