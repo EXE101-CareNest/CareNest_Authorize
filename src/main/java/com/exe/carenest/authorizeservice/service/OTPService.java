@@ -215,10 +215,10 @@ public class OTPService {
             throw new OTPException("Định dạng email không hợp lệ");
         }
         
-        // Check if email already exists for registration
-        if(userRepository.existsByEmail(toEmail)){
-            throw new OTPException("Email đã tồn tại trong hệ thống");
-        }
+//        // Check if email already exists for registration
+//        if(userRepository.existsByEmail(toEmail)){
+//            throw new OTPException("Email đã tồn tại trong hệ thống");
+//        }
         
         try {
             String otpCode = helper.generateOtp();
