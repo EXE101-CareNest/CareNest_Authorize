@@ -10,7 +10,9 @@ public class SecurityConstants {
             "/api/auth/forgot-password",
             "/api/auth/verify",
             "/api/auth/verify/otp",
-            "/api/auth/newPassword"
+            "/api/auth/newPassword",
+            "/api/auth/registerVerifyToken",
+            "/api/auth/re-send-otp-code",
     };
 
     // Account registration endpoints

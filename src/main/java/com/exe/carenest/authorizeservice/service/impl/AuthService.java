@@ -56,12 +56,14 @@ public class AuthService implements IAuthService {
             throw new UnauthorizedException("Tài khoàn chưa được kích hoạt");
         }
 
+        //Get
+        //        redisService.save("blacklist:" + jwtToken, "invalidated", expirationMs, TimeUnit.MILLISECONDS);
+
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Get authenticated user from authentication result
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // If you need Account object, get it from username
         Account user = userRepo.findByUsername(userDetails.getUsername())
                 .orElseThrow(UserNotFoundException::new);
 
@@ -104,10 +106,6 @@ public class AuthService implements IAuthService {
     @Override
     public void logout(String jwtToken) {
         // Check token valid trước
-        if (!verify(jwtToken)) {
-            return;  // Hoặc throw nếu cần, nhưng thường logout không cần valid
-        }
-
         Claims claims = jwtProvider.claimToken(jwtToken);
         long expirationMs = claims.getExpiration().getTime() - System.currentTimeMillis();
 

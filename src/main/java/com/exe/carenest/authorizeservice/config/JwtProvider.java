@@ -26,7 +26,7 @@ public class JwtProvider {
     private String secret;
 
     private final RedisService redisService;
-    private final long EXPIRATION = 60 * 60 * 1000; // 1 hour
+    private final long EXPIRATION = 7 * 24 * 60 * 60 * 1000L; // 1 week
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));

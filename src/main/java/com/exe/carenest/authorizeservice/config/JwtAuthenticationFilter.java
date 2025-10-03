@@ -1,5 +1,6 @@
 package com.exe.carenest.authorizeservice.config;
 
+import com.exe.carenest.authorizeservice.service.impl.RedisService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
+    private final RedisService redisService;
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
@@ -42,6 +44,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             try {
                 String token = header.substring(7);
+
+                if (isTokenBlacklisted(token)) {
+                    log.warn("Token is blacklisted: {}", token.substring(0, 10) + "...");
+                    // Don't set authentication - let it fail with 401
+                    chain.doFilter(request, response);
+                    return;
+                }
+
                 Claims claims = jwtProvider.claimToken(token);
                 String username = claims.getSubject(); // "admin"
                 String role = (String) claims.get("role"); // "ROLE_ADMIN"
@@ -71,6 +81,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.warn("No valid Bearer token found");
         }
         chain.doFilter(request, response);
+    }
+
+    private boolean isTokenBlacklisted(String token) {
+        try {
+            String blacklistKey = "blacklist:" + token;
+            Object blacklistValue = redisService.get(blacklistKey);
+
+            boolean isBlacklisted = blacklistValue != null;
+
+            if (isBlacklisted) {
+                log.info("Token found in blacklist: {}", blacklistKey);
+            }
+
+            return isBlacklisted;
+
+        } catch (Exception e) {
+            log.error("Error checking blacklist for token: {}", e.getMessage());
+            // In case of Redis error, allow the token to proceed
+            // Better to have temporary access than complete system failure
+            return false;
+        }
     }
 
 }

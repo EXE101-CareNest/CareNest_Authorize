@@ -38,11 +38,10 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "User logout")
-    public String logout(@RequestHeader("Authorization") String token) {
+    public void logout(@RequestHeader("Authorization") String token) {
         String jwtToken = token.replace("Bearer ", "");
         authService.logout(jwtToken);
         SecurityContextHolder.clearContext();
-        return "Logged out successfully";
     }
 
     @PostMapping("/login")
@@ -64,18 +63,18 @@ public class AuthController {
         return new LoginResponse(tokenResponse.accessToken(), tokenResponse.refreshToken(), request.username());
     }
 
-    @GetMapping("/verify")
-    public Map<String, Boolean> verify(@RequestHeader("Authorization") String token) {
-        boolean valid = authService.verify(token.replace("Bearer ", ""));
-        return Map.of("valid", valid);
-    }
-
-    @GetMapping("/authorize")
-    public Map<String, Boolean> authorize(@RequestHeader("Authorization") String token,
-                                       @RequestParam String role) {
-        boolean allowed = authService.authorize(token.replace("Bearer ", ""), role);
-        return Map.of("authorized", allowed);
-    }
+//    @GetMapping("/verify")
+//    public Map<String, Boolean> verify(@RequestHeader("Authorization") String token) {
+//        boolean valid = authService.verify(token.replace("Bearer ", ""));
+//        return Map.of("valid", valid);
+//    }
+//
+//    @GetMapping("/authorize")
+//    public Map<String, Boolean> authorize(@RequestHeader("Authorization") String token,
+//                                       @RequestParam String role) {
+//        boolean allowed = authService.authorize(token.replace("Bearer ", ""), role);
+//        return Map.of("authorized", allowed);
+//    }
 
     @PostMapping("/forgot-password")
     @Operation(summary = "Request password reset")
@@ -133,7 +132,7 @@ public class AuthController {
     @PostMapping("/newPassword")
     @Operation(summary = "Reset password with new password")
     public String resetPassword(@RequestHeader("X-Password-Reset-Token") String resetToken,
-                                                @RequestBody NewPasswordRequest newPasswordRequest) {
+                                @RequestBody NewPasswordRequest newPasswordRequest) {
         // Validate inputs
         if (resetToken == null || resetToken.trim().isEmpty()) {
             throw new BadRequestException("Token đặt lại mật khẩu không được để trống");
@@ -192,7 +191,7 @@ public class AuthController {
 
     @PostMapping("/registerVerifyToken")
     @Operation(summary = "Verify email after registration")
-    public String registerVerifyToken(@RequestHeader("X-Key-APT") String token, @RequestBody VerifyOtpRequest otpRequest) {
+    public void registerVerifyToken(@RequestHeader("X-Key-APT") String token, @RequestBody VerifyOtpRequest otpRequest) {
         // Validate inputs
         if (token == null || token.trim().isEmpty()) {
             throw new BadRequestException("Token OTP không được để trống");
@@ -217,7 +216,7 @@ public class AuthController {
                 accountService.activateAccountByEmail(email);
 
                 log.info("Email verification successful for: {}", email);
-                return "Xác thực email thành công. Tài khoản đã được kích hoạt";
+//                return "Xác thực email thành công. Tài khoản đã được kích hoạt";
             } else {
                 throw new BadRequestException("Mã OTP không chính xác");
             }
@@ -225,6 +224,7 @@ public class AuthController {
             log.error("Error verifying registration OTP: ", e);
             throw new BadRequestException(e.getMessage());
         }
+
     }
 
     @PostMapping("/refresh")
@@ -239,7 +239,8 @@ public class AuthController {
     }
 
     @PostMapping("/re-send-otp-code")
-    public String reSendOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String email, HttpServletResponse response) {
+    public String reSendOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
+            email, HttpServletResponse response) {
         // Validate token hiện tại
         if (!jwtProvider.validateToken(currentToken)) {
             throw new BadRequestException("Token không hợp lệ hoặc đã hết hạn");
