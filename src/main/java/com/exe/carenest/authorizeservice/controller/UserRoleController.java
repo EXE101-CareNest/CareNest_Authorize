@@ -4,6 +4,7 @@ import com.exe.carenest.authorizeservice.auth.model.UserRole;
 import com.exe.carenest.authorizeservice.dto.request.CreateRoleRequest;
 import com.exe.carenest.authorizeservice.service.IUserRoleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
 @CrossOrigin
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class UserRoleController {
     
     private final IUserRoleService userRoleService;

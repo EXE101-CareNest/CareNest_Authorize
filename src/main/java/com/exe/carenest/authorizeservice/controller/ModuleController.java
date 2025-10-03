@@ -13,33 +13,31 @@ import java.util.List;
 @RequestMapping("/api/modules")
 @RequiredArgsConstructor
 @CrossOrigin
-
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class ModuleController {
     
     private final IModuleService moduleService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    // GET: Lấy tất cả modules
+
     @GetMapping
     public List<ModuleFunc> getAllModules() {
         return moduleService.getAllModules();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+
     // POST: Thêm module mới
     @PostMapping
     public ModuleFunc createModule(@RequestBody CreateModuleRequest request) {
         return moduleService.createModule(request.urlPattern(), request.name());
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     // GET: Lấy module theo URL pattern
     @GetMapping("/{urlPattern}")
     public ModuleFunc getModuleByUrlPattern(@PathVariable String urlPattern) {
         return moduleService.findByUrlPattern(urlPattern);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+
     // DELETE: Xóa module
     @DeleteMapping("/{urlPattern}")
     public void deleteModule(@PathVariable String urlPattern) {

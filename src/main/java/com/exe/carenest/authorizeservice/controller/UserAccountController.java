@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/accounts")
 @Tag(name = "User Account Management", description = "APIs for user account actions")
+
+
 public class UserAccountController {
     private final IAccountService accountService;
     private final OTPService otpService;

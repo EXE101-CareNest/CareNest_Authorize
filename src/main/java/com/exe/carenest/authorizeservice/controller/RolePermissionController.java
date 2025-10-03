@@ -15,11 +15,12 @@ import java.util.List;
 @RequestMapping("/api/role-permissions")
 @RequiredArgsConstructor
 @CrossOrigin
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class RolePermissionController {
     
     private final IRolePermissionService rolePermissionService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     // PUT: Cập nhật permission
     @PutMapping("/{id}")
     public RolePermission updateRolePermission(
@@ -31,16 +32,14 @@ public class RolePermissionController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    // DELETE: Xóa permission
+
     @DeleteMapping("/{id}")
     public void deleteRolePermission(@PathVariable Long id) {
         rolePermissionService.deleteRolePermission(id);
     }
 
 
-    @PreAuthorize("hasRole('ADMIN')")
-    // POST: Batch update permissions cho role
+
     @PostMapping("/batch-update")
     public String batchUpdatePermissions(@RequestBody BatchUpdatePermissionsRequest request) {
         rolePermissionService.batchUpdatePermissions(
@@ -52,7 +51,6 @@ public class RolePermissionController {
     }
 
 
-    @PreAuthorize("hasRole('ADMIN')")
     // GET: Lấy permissions display cho role (như trong UI)
     @GetMapping("/display/{roleName}")
     public List<RolePermissionDisplayDto> getRolePermissionsDisplay(@PathVariable String roleName) {

@@ -6,11 +6,13 @@ import com.exe.carenest.authorizeservice.exception.BadRequestException;
 import com.exe.carenest.authorizeservice.service.OTPService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/email")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class EmailController {
 
     private final OTPService otpService;

@@ -19,7 +19,6 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/api/permission")
 @RequiredArgsConstructor
-
 public class PermissionController {
 
     private final IRolePermissionService rolePermissionService;
