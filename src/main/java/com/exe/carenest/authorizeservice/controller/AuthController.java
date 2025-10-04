@@ -262,7 +262,7 @@ public class AuthController {
 
 
     @GetMapping("/me")
-    public PersonalInfoResponse getPersonalInfo(@PathVariable String id) {
+    public PersonalInfoResponse getPersonalInfo() {
         return accountService.getMe();
     }
 
