@@ -1,6 +1,7 @@
 package com.exe.carenest.authorizeservice.service.impl;
 
 import com.exe.carenest.authorizeservice.auth.model.Account;
+import com.exe.carenest.authorizeservice.dto.response.PersonalInfoResponse;
 import com.exe.carenest.authorizeservice.auth.model.UserRole;
 import com.exe.carenest.authorizeservice.config.JwtProvider;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
@@ -196,4 +197,21 @@ public class AccountService implements IAccountService {
         account.set_active(true);
         userRepository.save(account);
     }
+
+    @Override
+    public PersonalInfoResponse getMe() {
+        Account account =  getCurrentUser();
+
+        return new PersonalInfoResponse(
+                account.getFullName(),
+                account.getEmail(),
+                account.getGender(),
+                account.getDateOfBirth(),
+                account.getNationality(),
+                account.getPermanentAddress(),
+                account.getHomeTown(),
+                account.getImgUrl()
+        );
+    }
+
 }

@@ -6,6 +6,7 @@ import com.exe.carenest.authorizeservice.dto.request.LoginRequest;
 import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
 import com.exe.carenest.authorizeservice.dto.request.VerifyOtpRequest;
 import com.exe.carenest.authorizeservice.dto.response.LoginResponse;
+import com.exe.carenest.authorizeservice.dto.response.PersonalInfoResponse;
 import com.exe.carenest.authorizeservice.dto.response.TokenResponse;
 import com.exe.carenest.authorizeservice.exception.ApiException;
 import com.exe.carenest.authorizeservice.exception.BadRequestException;
@@ -239,7 +240,7 @@ public class AuthController {
     }
 
     @PostMapping("/re-send-otp-code")
-    public String reSendOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
+    public void reSendOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
             email, HttpServletResponse response) {
         // Validate token hiện tại
         if (!jwtProvider.validateToken(currentToken)) {
@@ -257,6 +258,12 @@ public class AuthController {
         // Tạo OTP mới
         String newOtpToken = otpService.sendRegistrationOtp(email);
         response.setHeader("X-Key-APT", newOtpToken);
-        return "đã gửi lại mật khẩu";
     }
+
+
+    @GetMapping("/me")
+    public PersonalInfoResponse getPersonalInfo(@PathVariable String id) {
+        return accountService.getMe();
+    }
+
 }

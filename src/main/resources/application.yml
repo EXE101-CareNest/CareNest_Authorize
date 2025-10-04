@@ -42,6 +42,8 @@ jwt:
 
 server:
   port: 8080
+  forward-headers-strategy: native
+  use-forward-headers: true
 
 app:
   version: 1.0.0
@@ -76,6 +78,9 @@ eureka:
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
 
+springdoc:
+  swagger-ui:
+    use-root-path: true
 ---
 #spring:
 #  datasource:
