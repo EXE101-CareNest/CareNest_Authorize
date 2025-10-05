@@ -26,7 +26,7 @@ public class AdminAccountController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SHOP, 'ROLE_USER')")
+//    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SHOP, 'ROLE_USER')")
     public AccountResponse getAccountById(@PathVariable String id) {
         return accountService.findById(id);
     }

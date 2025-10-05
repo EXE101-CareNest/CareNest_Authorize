@@ -1,6 +1,5 @@
 package com.exe.carenest.authorizeservice.controller;
 
-import com.exe.carenest.authorizeservice.dto.response.PersonalInfoResponse;
 import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
@@ -47,6 +46,7 @@ public class UserAccountController {
     public void updatePassword(@RequestBody NewPasswordRequest newPasswordRequest) {
         accountService.updatePassword(newPasswordRequest.email(), newPasswordRequest.password());
     }
+
 
 
 
