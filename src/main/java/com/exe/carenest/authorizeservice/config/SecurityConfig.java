@@ -115,7 +115,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOrigin("**"); // or your frontend domain
+        // Chỉ định domain cụ thể
+        config.addAllowedOrigin("http://localhost:3000");  // React dev
+        config.addAllowedOrigin("http://localhost:8080");  // Vue dev
+        config.addAllowedOrigin("https://exe-101-carenest-fe.vercel.app"); // Production
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);
@@ -123,5 +127,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
+
 
 }
