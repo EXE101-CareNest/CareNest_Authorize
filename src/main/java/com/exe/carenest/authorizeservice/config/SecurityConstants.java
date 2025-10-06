@@ -19,6 +19,7 @@ public class SecurityConstants {
     private static final String[] ACCOUNT_WHITELIST = {
             "/api/shops/register",
             "/api/accounts/register/customer",
+            "/api/accounts/**",
             "/api/shops/information"
     };
 
