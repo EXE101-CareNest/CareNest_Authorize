@@ -124,6 +124,8 @@ public class SecurityConfig {
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);
 
+        config.addExposedHeader("X-Key-APT");
+
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
