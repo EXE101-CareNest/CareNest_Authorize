@@ -7,9 +7,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.server.PathContainer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.util.Arrays;
@@ -74,6 +76,11 @@ public class AuthorizeServiceApplication {
                 .anyMatch(pattern -> pattern.matches(PathContainer.parsePath(actualUrl)));
     }
 
+
+    @Bean
+    public RestTemplate initRestTemplate(){
+        return new RestTemplate();
+    }
 
 
 }
