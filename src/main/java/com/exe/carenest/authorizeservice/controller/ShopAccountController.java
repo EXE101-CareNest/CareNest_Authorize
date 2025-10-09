@@ -1,5 +1,6 @@
 package com.exe.carenest.authorizeservice.controller;
 
+import com.exe.carenest.authorizeservice.data.OTP_Purpose;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
 import com.exe.carenest.authorizeservice.dto.request.ShopRegistrationRequest;
 import com.exe.carenest.authorizeservice.dto.response.ShopResponse;
@@ -30,7 +31,7 @@ public class ShopAccountController {
     @ResponseStatus(HttpStatus.CREATED)
     public void createShopAccount(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
         accountService.createAccount(request, "ROLE_SHOP");
-        String otpToken = otpService.sendRegistrationOtp(request.email());
+        String otpToken = otpService.sendOtp(request.email(), OTP_Purpose.REGISTER);
         response.setHeader("X-Key-APT", otpToken);
     }
 

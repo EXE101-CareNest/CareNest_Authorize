@@ -6,7 +6,6 @@ import com.exe.carenest.authorizeservice.exception.BadRequestException;
 import com.exe.carenest.authorizeservice.service.EmailService;
 import com.exe.carenest.authorizeservice.service.IAccountService;
 import com.exe.carenest.authorizeservice.service.OTPService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +20,11 @@ public class EmailController {
     private final EmailService emailService;
     private final IAccountService accountService;
 
-    @GetMapping("/send-otp")
-    public String sendOtp(@RequestParam String email, HttpServletResponse response) {
-        response.setHeader("X-Key-APT", otpService.sendOtp(email));
-        return "Forgot password reset successfully";
-    }
+//    @GetMapping("/send-otp")
+//    public String sendOtp(@RequestParam String email, HttpServletResponse response) {
+//        response.setHeader("X-Key-APT", otpService.sendOtp(email));
+//        return "Forgot password reset successfully";
+//    }
 
 
     @GetMapping("/check-otp")
