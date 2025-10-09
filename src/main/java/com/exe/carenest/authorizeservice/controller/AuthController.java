@@ -248,29 +248,32 @@ public class AuthController {
     }
 
     @PostMapping("/reSendForgetPassOtpCode")
-    public void reSendForgetPassOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
-            email, HttpServletResponse response) {
-        // Validate token hiện tại
-        if (!jwtProvider.validateToken(currentToken)) {
-            throw new BadRequestException("Token không hợp lệ hoặc đã hết hạn");
-        }
-
-        String tokenEmail = jwtProvider.getSubject(currentToken);
-        if (!tokenEmail.equals(email)) {
-            throw new BadRequestException("Email không khớp với token");
-        }
-
-        // Invalidate token cũ
-        redisCache.delete("otp:" + currentToken);
-
-        // Tạo OTP mới
-        String newOtpToken = otpService.sendOtp(email, OTP_Purpose.FORGET_PASSWORD);
-        response.setHeader("X-Key-APT", newOtpToken);
+    public void reSendForgetPassOtpCode(
+            @RequestHeader("X-Key-APT") String currentToken,
+            @RequestParam String email,
+            HttpServletResponse response
+    ) {
+        resendOtp(currentToken, email, OTP_Purpose.FORGET_PASSWORD, response);
     }
 
     @PostMapping("/reSendRegisterOtp")
-    public void reSendRegisterOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
-            email, HttpServletResponse response) {
+    public void reSendRegisterOtpCode(
+            @RequestHeader("X-Key-APT") String currentToken,
+            @RequestParam String email,
+            HttpServletResponse response
+    ) {
+        resendOtp(currentToken, email, OTP_Purpose.REGISTER, response);
+    }
+
+    /**
+     * Common method to handle OTP resend logic
+     */
+    private void resendOtp(
+            String currentToken,
+            String email,
+            OTP_Purpose purpose,
+            HttpServletResponse response
+    ) {
         // Validate token hiện tại
         if (!jwtProvider.validateToken(currentToken)) {
             throw new BadRequestException("Token không hợp lệ hoặc đã hết hạn");
@@ -285,7 +288,7 @@ public class AuthController {
         redisCache.delete("otp:" + currentToken);
 
         // Tạo OTP mới
-        String newOtpToken = otpService.sendOtp(email, OTP_Purpose.REGISTER);
+        String newOtpToken = otpService.sendOtp(email, purpose);
         response.setHeader("X-Key-APT", newOtpToken);
     }
 
