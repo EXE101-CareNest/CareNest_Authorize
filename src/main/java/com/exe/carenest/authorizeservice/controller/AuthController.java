@@ -1,6 +1,7 @@
 package com.exe.carenest.authorizeservice.controller;
 
 import com.exe.carenest.authorizeservice.config.JwtProvider;
+import com.exe.carenest.authorizeservice.data.OTP_Purpose;
 import com.exe.carenest.authorizeservice.dto.request.ForgotPasswordRequest;
 import com.exe.carenest.authorizeservice.dto.request.LoginRequest;
 import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
@@ -79,6 +80,7 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     @Operation(summary = "Request password reset")
+//    @RateLimiter(maxRequests = 5, window = "1m") // 5 requests/phút
     public String forgotPassword(@RequestBody ForgotPasswordRequest request, HttpServletResponse response) {
         // Validate input
         if (request == null || request.email() == null || request.email().trim().isEmpty()) {
@@ -88,7 +90,7 @@ public class AuthController {
         try {
             // Security best practice: Always send OTP regardless of email existence
             // This prevents email enumeration attacks
-            String otpToken = otpService.sendOtp(request.email());
+            String otpToken = otpService.sendOtp(request.email(), OTP_Purpose.FORGET_PASSWORD);
             response.setHeader("X-Key-APT", otpToken);
             return "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi";
         } catch (Exception e) {
@@ -125,7 +127,7 @@ public class AuthController {
                 throw new BadRequestException("Mã OTP không chính xác");
             }
         } catch (Exception e) {
-            log.error("Error verifying OTP: ", e);
+            log.error("Mã đã hết hạn", e);
             throw new BadRequestException(e.getMessage());
         }
     }
@@ -190,6 +192,8 @@ public class AuthController {
         }
     }
 
+
+
     @PostMapping("/registerVerifyToken")
     @Operation(summary = "Verify email after registration")
     public void registerVerifyToken(@RequestHeader("X-Key-APT") String token, @RequestBody VerifyOtpRequest otpRequest) {
@@ -211,6 +215,10 @@ public class AuthController {
                 String email = jwtProvider.getSubject(token);
                 if (email == null || email.trim().isEmpty()) {
                     throw new BadRequestException("Không thể xác định email từ token");
+                }
+
+                if(accountService.isAccountActive(email)){
+                    throw new BadRequestException("Oops: Tài khoản đã được kích hoạt");
                 }
 
                 // Activate account after successful email verification
@@ -239,8 +247,8 @@ public class AuthController {
         return Map.of("revoked", true);
     }
 
-    @PostMapping("/re-send-otp-code")
-    public void reSendOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
+    @PostMapping("/reSendForgetPassOtpCode")
+    public void reSendForgetPassOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
             email, HttpServletResponse response) {
         // Validate token hiện tại
         if (!jwtProvider.validateToken(currentToken)) {
@@ -256,7 +264,28 @@ public class AuthController {
         redisCache.delete("otp:" + currentToken);
 
         // Tạo OTP mới
-        String newOtpToken = otpService.sendRegistrationOtp(email);
+        String newOtpToken = otpService.sendOtp(email, OTP_Purpose.FORGET_PASSWORD);
+        response.setHeader("X-Key-APT", newOtpToken);
+    }
+
+    @PostMapping("/reSendRegisterOtp")
+    public void reSendRegisterOtpCode(@RequestHeader("X-Key-APT") String currentToken, @RequestParam String
+            email, HttpServletResponse response) {
+        // Validate token hiện tại
+        if (!jwtProvider.validateToken(currentToken)) {
+            throw new BadRequestException("Token không hợp lệ hoặc đã hết hạn");
+        }
+
+        String tokenEmail = jwtProvider.getSubject(currentToken);
+        if (!tokenEmail.equals(email)) {
+            throw new BadRequestException("Email không khớp với token");
+        }
+
+        // Invalidate token cũ
+        redisCache.delete("otp:" + currentToken);
+
+        // Tạo OTP mới
+        String newOtpToken = otpService.sendOtp(email, OTP_Purpose.REGISTER);
         response.setHeader("X-Key-APT", newOtpToken);
     }
 

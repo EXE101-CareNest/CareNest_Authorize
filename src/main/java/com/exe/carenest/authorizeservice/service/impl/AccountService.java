@@ -214,4 +214,10 @@ public class AccountService implements IAccountService {
         );
     }
 
+    @Override
+    public boolean isAccountActive(String email) {
+        Account account = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+        return account.is_active();
+    }
+
 }

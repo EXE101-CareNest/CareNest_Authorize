@@ -1,5 +1,6 @@
 package com.exe.carenest.authorizeservice.service;
 
+import com.exe.carenest.authorizeservice.data.OTP_Purpose;
 import com.exe.carenest.authorizeservice.exception.OTPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,7 @@ public class EmailService {
         // Sender info
         Map<String, String> sender = Map.of(
                 "name", "Care Nest Support",
-                "email", "nghihvdse182563@fpt.edu.vn"
+                "email", "trungksdoa@gmail.com"
         );
 
         // Recipient info
@@ -117,6 +118,22 @@ public class EmailService {
             log.error("Failed to send email {}: {}", emailType, e.getMessage());
             throw new OTPException("Lỗi hệ thống khi gửi email " + emailType + ": " + e.getMessage());
         }
+    }
+
+    /**
+     * Get email template based on purpose
+     *
+     * @param purpose "register" or "password_reset"
+     * @param toEmail recipient email
+     * @param otpCode OTP code to display
+     * @return HTML content for email
+     */
+    public String getTemplate(OTP_Purpose otpPurpose, String toEmail, String otpCode) {
+        return switch (otpPurpose) {
+            case REGISTER -> createRegistrationHtmlContent(toEmail, otpCode);
+            case FORGET_PASSWORD -> createPasswordResetHtmlContent(toEmail, otpCode);
+            default -> throw new IllegalArgumentException("Invalid email purpose: " + otpPurpose.name().toLowerCase());
+        };
     }
 
     /**
@@ -182,4 +199,5 @@ public class EmailService {
                 "</body>" +
                 "</html>";
     }
+
 }

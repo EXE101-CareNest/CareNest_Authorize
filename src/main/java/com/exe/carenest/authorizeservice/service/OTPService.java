@@ -1,6 +1,7 @@
 package com.exe.carenest.authorizeservice.service;
 
 import com.exe.carenest.authorizeservice.config.JwtProvider;
+import com.exe.carenest.authorizeservice.data.OTP_Purpose;
 import com.exe.carenest.authorizeservice.dto.request.VerifyOtpRequest;
 import com.exe.carenest.authorizeservice.exception.OTPException;
 import com.exe.carenest.authorizeservice.exception.OTPExpiredException;
@@ -69,47 +70,32 @@ public class OTPService {
         String otpToken = jwtProvider.generateTokenByEmail(email,
                 new Date(System.currentTimeMillis() + expirationMillis));
 
-        redisCache.save("otp:" + otpToken, otpCode, otpExpiredTime, TimeUnit.SECONDS);
+        redisCache.save("otp:" + otpToken, otpCode, expirationMillis, TimeUnit.MILLISECONDS);
 
         log.info("OTP token generated for email: {}", email);
         return otpToken;
     }
 
-    /**
-     * Send OTP for password reset
-     */
-    public String sendOtp(String toEmail) {
-        validateEmail(toEmail);
-        checkRateLimit(toEmail);
 
-        try {
-            String otpCode = helper.generateOtp();
 
-            emailService.sendPasswordResetOTP(toEmail, otpCode);
-
-            return generateAndSaveOTPToken(toEmail, otpCode);
-
-        } catch (Exception e) {
-            if (e instanceof OTPException) {
-                throw e;
-            }
-            throw new OTPException("Lỗi hệ thống khi gửi OTP: " + e.getMessage());
-        }
+    private String getSubject(OTP_Purpose purpose) {
+        return switch (purpose) {
+            case REGISTER -> "Xác thực Email - Care Nest";
+            case FORGET_PASSWORD -> "Đặt lại mật khẩu - Care Nest";
+            default -> "OTP - Care Nest";
+        };
     }
 
-    /**
-     * Send OTP for registration
-     */
-    public String sendRegistrationOtp(String toEmail) {
-        validateEmail(toEmail);
 
+    // Trong OTPService
+    public String sendOtp(String email, OTP_Purpose purpose) {
         try {
-            String otpCode = helper.generateOtp();
+            String otpCode = helper.generateOtp(); // "123456"
 
-            emailService.sendRegistrationOTP(toEmail, otpCode);
+            String templateHtml = emailService.getTemplate(purpose,email,otpCode);
+            emailService.sendCustomEmail(email, getSubject(purpose),templateHtml);
 
-            return generateAndSaveOTPToken(toEmail, otpCode);
-
+            return generateAndSaveOTPToken(email, otpCode);
         } catch (Exception e) {
             if (e instanceof OTPException) {
                 throw e;
@@ -117,7 +103,6 @@ public class OTPService {
             throw new OTPException("Lỗi hệ thống khi gửi OTP xác thực email: " + e.getMessage());
         }
     }
-
     /**
      * Check if OTP token is expired
      */

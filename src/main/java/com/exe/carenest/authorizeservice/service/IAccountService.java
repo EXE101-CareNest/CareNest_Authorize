@@ -38,4 +38,7 @@ public interface IAccountService {
     void activateAccountByEmail(String email);
 
     PersonalInfoResponse getMe();
+
+
+    boolean isAccountActive(String email);
 }
