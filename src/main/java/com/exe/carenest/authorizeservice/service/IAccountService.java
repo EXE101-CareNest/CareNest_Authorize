@@ -21,7 +21,7 @@ public interface IAccountService {
 
     boolean existsByUsername(String username);
 
-    void updatePassword(String email, String newPassword);
+    void updatePassword(String userId, String newPassword);
 
     boolean deleteAccount(String accountId);
 

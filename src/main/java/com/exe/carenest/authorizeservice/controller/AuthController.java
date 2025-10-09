@@ -284,6 +284,7 @@ public class AuthController {
             throw new BadRequestException("Email không khớp với token");
         }
 
+
         // Invalidate token cũ
         redisCache.delete("otp:" + currentToken);
 

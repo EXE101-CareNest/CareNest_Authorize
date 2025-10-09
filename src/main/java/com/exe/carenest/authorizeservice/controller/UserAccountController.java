@@ -1,5 +1,6 @@
 package com.exe.carenest.authorizeservice.controller;
 
+import com.exe.carenest.authorizeservice.data.OTP_Purpose;
 import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
@@ -29,7 +30,7 @@ public class UserAccountController {
     @ResponseStatus(HttpStatus.CREATED)
     public void createCustomerAccount(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
         accountService.createAccount(request, "ROLE_USER");
-        String otpToken = otpService.sendRegistrationOtp(request.email());
+        String otpToken = otpService.sendOtp(request.email(), OTP_Purpose.REGISTER);
         response.setHeader("X-Key-APT", otpToken);
     }
 
@@ -46,9 +47,9 @@ public class UserAccountController {
         return accountService.findByUsernameResponse(username);
     }
 
-    @PutMapping("/password")
-    public void updatePassword(@RequestBody NewPasswordRequest newPasswordRequest) {
-        accountService.updatePassword(newPasswordRequest.email(), newPasswordRequest.password());
+    @PutMapping("/change-password")
+    public void updatePassword(@RequestParam("userId") String userId, @RequestBody NewPasswordRequest newPasswordRequest) {
+        accountService.updatePassword(userId, newPasswordRequest.password());
     }
 
 

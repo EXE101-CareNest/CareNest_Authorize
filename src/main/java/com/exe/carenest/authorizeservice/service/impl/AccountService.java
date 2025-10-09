@@ -130,13 +130,13 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public void updatePassword(String email, String newPassword) {
+    public void updatePassword(String userId, String newPassword) {
         // Null check for safety
         if (newPassword == null || newPassword.isEmpty()) {
             throw new PasswordException("Mật khẩu mới không hợp lệ");
         }
 
-        Account account = userRepository.findByEmail(email)
+        Account account = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         account.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(account);
