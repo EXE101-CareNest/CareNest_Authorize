@@ -9,5 +9,6 @@ public record AccountResponse(
         String username,
         String email,
         String role,
-        boolean isActive
+        boolean isActive,
+        String address
 ) {}

@@ -1,9 +1,11 @@
 package com.exe.carenest.authorizeservice.ultil;
 
+import com.exe.carenest.authorizeservice.auth.model.Account;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.dto.response.ShopResponse;
-import com.exe.carenest.authorizeservice.auth.model.Account;
 import com.exe.carenest.authorizeservice.user.model.Shop;
+
+import java.util.Objects;
 
 public class UserMapper {
 
@@ -30,6 +32,7 @@ public class UserMapper {
                 .email(account.getEmail())
                 .role(account.getRole() == null ? null : account.getRole().getName())
                 .isActive(account.is_active())
+                .address(account.getPermanentAddress() != null ? account.getPermanentAddress() : "Không có địa chỉ")
                 .build();
     }
 }
