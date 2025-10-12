@@ -51,7 +51,7 @@ public class AuthService implements IAuthService {
             authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(req.username(), req.password()));
         } catch (BadCredentialsException e) {
-            throw new PasswordException("Mật khẩu không đúng");
+            throw new PasswordException("Thông tin đăng nhập không đúng");
         } catch (DisabledException e) {
             throw new UnauthorizedException("Tài khoàn chưa được kích hoạt");
         }
