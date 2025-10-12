@@ -123,7 +123,6 @@ public class EmailService {
     /**
      * Get email template based on purpose
      *
-     * @param purpose "register" or "password_reset"
      * @param toEmail recipient email
      * @param otpCode OTP code to display
      * @return HTML content for email

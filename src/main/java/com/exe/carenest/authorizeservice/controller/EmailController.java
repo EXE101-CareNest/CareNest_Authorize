@@ -7,13 +7,11 @@ import com.exe.carenest.authorizeservice.service.EmailService;
 import com.exe.carenest.authorizeservice.service.IAccountService;
 import com.exe.carenest.authorizeservice.service.OTPService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/email")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class EmailController {
 
     private final OTPService otpService;
