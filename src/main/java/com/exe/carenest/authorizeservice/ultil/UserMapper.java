@@ -5,8 +5,6 @@ import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.dto.response.ShopResponse;
 import com.exe.carenest.authorizeservice.user.model.Shop;
 
-import java.util.Objects;
-
 public class UserMapper {
 
 
@@ -29,6 +27,7 @@ public class UserMapper {
         return AccountResponse.builder()
                 .id(account.getId())
                 .username(account.getUsername())
+                .fullName(account.getFullName())
                 .email(account.getEmail())
                 .role(account.getRole() == null ? null : account.getRole().getName())
                 .isActive(account.is_active())

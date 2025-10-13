@@ -7,6 +7,7 @@ import lombok.Builder;
 public record AccountResponse(
         String id,
         String username,
+        String fullName,
         String email,
         String role,
         boolean isActive,
