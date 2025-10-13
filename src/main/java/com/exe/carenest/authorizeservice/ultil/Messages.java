@@ -13,6 +13,7 @@ public enum Messages {
     // Lỗi liên quan đến người dùng
     USER_NOT_FOUND("USER_NOT_FOUND", "Không tìm thấy người dùng", 404),
     USER_ALREADY_EXISTS("USER_ALREADY_EXISTS", "Người dùng đã tồn tại", 409),
+    MAIL_ALREADY_LINKED("MAIL_ALREADY_LINKED", "Email này đã được liên kết với 1 tài khoản khác", 409),
 
     // Lỗi liên quan đến mật khẩu
     INVALID_PASSWORD("INVALID_PASSWORD", "Mật khẩu không hợp lệ hoặc sai", 400),

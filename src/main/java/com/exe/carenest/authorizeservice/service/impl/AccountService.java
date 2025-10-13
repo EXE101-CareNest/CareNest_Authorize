@@ -49,6 +49,11 @@ public class AccountService implements IAccountService {
             throw new ApiException(Messages.USER_ALREADY_EXISTS.getCode(), Messages.USER_ALREADY_EXISTS.getMessage(), Messages.USER_ALREADY_EXISTS.getStatus());
         }
 
+        //check if email exits
+        if(userRepository.findByEmail(registerRequest.email()).isPresent()){
+            throw new ApiException(Messages.USER_ALREADY_EXISTS.getCode(), Messages.MAIL_ALREADY_LINKED.getMessage(), Messages.MAIL_ALREADY_LINKED.getStatus());
+        }
+
         // Resolve role by name
         UserRole role = userRoleRepository.findByName(roleName)
                 .orElseThrow(() -> new ApiException("ROLE_NOT_FOUND", "Role not found: " + roleName, 404));
