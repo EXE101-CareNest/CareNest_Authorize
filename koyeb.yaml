@@ -1,0 +1,45 @@
+services:
+  - name: authorize-service
+    ports:
+      - 8080
+    routes:
+      - path: /
+    scalings:
+      min: 1
+      max: 2
+    healthchecks:
+      http:
+        port: 8080
+        path: /actuator/health
+        interval: 30s
+        timeout: 10s
+        initial_delay: 60s
+        success_threshold: 1
+        failure_threshold: 3
+    env:
+      - name: SPRING_PROFILES_ACTIVE
+        value: docker
+      - name: SERVER_PORT
+        value: "8080"
+      - name: EUREKA_CLIENT_ENABLED
+        value: "false"
+      # Database
+      - name: SPRING_DATASOURCE_URL
+        value: "${SPRING_DATASOURCE_URL}"
+      - name: SPRING_DATASOURCE_USERNAME
+        value: "${SPRING_DATASOURCE_USERNAME}"
+      - name: SPRING_DATASOURCE_PASSWORD
+        value: "${SPRING_DATASOURCE_PASSWORD}"
+      # Redis
+      - name: SPRING_REDIS_HOST
+        value: "${SPRING_REDIS_HOST}"
+      - name: SPRING_REDIS_PORT
+        value: "${SPRING_REDIS_PORT}"
+      # Mail / JWT
+      - name: BREVO_API_KEY
+        value: "${BREVO_API_KEY}"
+      - name: JWT_SECRET
+        value: "${JWT_SECRET}"
+    docker:
+      dockerfile: Dockerfile
+

@@ -3,7 +3,7 @@ otp:
 
 spring:
   profiles:
-    active: docker
+    active: ${SPRING_PROFILES_ACTIVE:docker}
   application:
     name: authorize-service
   datasource:
@@ -34,11 +34,11 @@ spring:
 
 brevo:
   api:
-    key: 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
+    key: ${BREVO_API_KEY:}
     url: https://api.brevo.com/v3/smtp/email
 
 jwt:
-  secret: CA39C3A2A3D4654A764C8E724CB37114CF68D80A34057F06641A31E0A0A3BA86
+  secret: ${JWT_SECRET:CA39C3A2A3D4654A764C8E724CB37114CF68D80A34057F06641A31E0A0A3BA86}
 
 server:
   port: 8080
@@ -67,7 +67,7 @@ logging:
 
 eureka:
   client:
-    enabled: true
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
     register-with-eureka: true
     fetch-registry: true
     service-url:
