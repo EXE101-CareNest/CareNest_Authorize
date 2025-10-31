@@ -63,6 +63,10 @@ dependencies {
 	// Documentation
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
 
+	// Database migrations
+	implementation 'org.flywaydb:flyway-core:10.20.1'
+	implementation 'org.flywaydb:flyway-database-postgresql:10.20.1'
+
 	// Utilities
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

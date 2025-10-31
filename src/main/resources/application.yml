@@ -81,6 +81,11 @@ eureka:
 springdoc:
   swagger-ui:
     use-root-path: true
+
+flyway:
+  enabled: ${SPRING_FLYWAY_ENABLED:true}
+  baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
+  locations: classpath:db/migration
 ---
 #spring:
 #  datasource:
