@@ -19,6 +19,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_schema: ${DB_SCHEMA:public}
   data:
     redis:
       host: ${SPRING_REDIS_HOST:redis}
@@ -87,6 +88,9 @@ flyway:
   enabled: ${SPRING_FLYWAY_ENABLED:true}
   baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
   locations: classpath:db/migration
+  default-schema: ${DB_SCHEMA:public}
+  schemas: ${DB_SCHEMA:public}
+  create-schemas: true
 ---
 #spring:
 #  datasource:
