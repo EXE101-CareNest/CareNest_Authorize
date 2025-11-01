@@ -3,6 +3,7 @@ package com.exe.carenest.authorizeservice.controller;
 import com.exe.carenest.authorizeservice.data.OTP_Purpose;
 import com.exe.carenest.authorizeservice.dto.request.NewPasswordRequest;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
+import com.exe.carenest.authorizeservice.dto.request.UpdateAccountRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.service.IAccountService;
 import com.exe.carenest.authorizeservice.service.OTPService;
@@ -15,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/accounts")
 @Tag(name = "User Account Management", description = "APIs for user account actions")
-
-
 public class UserAccountController {
     private final IAccountService accountService;
     private final OTPService otpService;
@@ -54,5 +53,9 @@ public class UserAccountController {
 
 
 
-
+   @PutMapping("/{id}")
+    public Boolean updateAccount(@PathVariable String id, @RequestBody UpdateAccountRequest request) {
+        accountService.updateAccount(id, request);
+        return true;
+    }
 }

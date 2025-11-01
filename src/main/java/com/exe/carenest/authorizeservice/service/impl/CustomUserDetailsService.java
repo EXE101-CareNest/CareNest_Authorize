@@ -9,23 +9,23 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-@Service
-public class CustomUserDetailsService implements UserDetailsService {
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Account account = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            
+    @Service
+    public class CustomUserDetailsService implements UserDetailsService {
 
-        return User.builder()
-            .username(account.getUsername())
-            .password(account.getPassword())
-            .authorities("ROLE_" + account.getRole().getName())
-            .accountExpired(!account.is_active())
-            .build();
+        @Autowired
+        private UserRepository userRepository;
+
+        @Override
+        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+            Account account = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+
+            return User.builder()
+                .username(account.getUsername())
+                .password(account.getPassword())
+                .authorities("ROLE_" + account.getRole().getName())
+                .accountExpired(!account.is_active())
+                .build();
+        }
     }
-}

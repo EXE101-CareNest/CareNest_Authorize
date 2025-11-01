@@ -24,6 +24,12 @@ public class EmailService {
     @Value("${brevo.api.url}")
     private String apiUrl;
 
+    @Value("${brevo.api.sender.email}")
+    private String senderEmail;
+
+    @Value("${brevo.api.sender.name}")
+    private String senderName;
+
     private final RestTemplate restTemplate;
 
     /**
@@ -66,10 +72,10 @@ public class EmailService {
     private Map<String, Object> createEmailBody(String toEmail, String subject, String htmlContent) {
         Map<String, Object> body = new HashMap<>();
 
-        // Sender info
+        // Sender info - sử dụng từ config
         Map<String, String> sender = Map.of(
-                "name", "Care Nest Support",
-                "email", "trungksdoa@gmail.com"
+                "name", senderName,
+                "email", senderEmail
         );
 
         // Recipient info
