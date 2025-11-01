@@ -1,11 +1,13 @@
 package com.exe.carenest.authorizeservice.service.impl;
 
 import com.exe.carenest.authorizeservice.auth.model.Account;
-import com.exe.carenest.authorizeservice.dto.response.PersonalInfoResponse;
+import com.exe.carenest.authorizeservice.auth.model.Gender;
 import com.exe.carenest.authorizeservice.auth.model.UserRole;
 import com.exe.carenest.authorizeservice.config.JwtProvider;
 import com.exe.carenest.authorizeservice.dto.request.RegisterRequest;
+import com.exe.carenest.authorizeservice.dto.request.UpdateAccountRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
+import com.exe.carenest.authorizeservice.dto.response.PersonalInfoResponse;
 import com.exe.carenest.authorizeservice.exception.*;
 import com.exe.carenest.authorizeservice.repository.UserRepository;
 import com.exe.carenest.authorizeservice.repository.UserRoleRepository;
@@ -14,6 +16,8 @@ import com.exe.carenest.authorizeservice.ultil.DateUtil;
 import com.exe.carenest.authorizeservice.ultil.Messages;
 import com.exe.carenest.authorizeservice.ultil.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -117,6 +121,27 @@ public class AccountService implements IAccountService {
     }
 
     @Override
+    public void updateAccount(String id, UpdateAccountRequest request) {
+        Account account = userRepository.findById(id)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (request.getFullName() != null) account.setFullName(request.getFullName());
+        if (request.getEmail() != null) account.setEmail(request.getEmail());
+        if (request.getGender() != null) account.setGender(Gender.valueOf(request.getGender()));
+        if (request.getDateOfBirth() != null) account.setDateOfBirth(request.getDateOfBirth());
+        if (request.getNationality() != null) account.setNationality(request.getNationality());
+        if (request.getPermanentAddress() != null) account.setPermanentAddress(request.getPermanentAddress());
+        if (request.getHomeTown() != null) account.setHomeTown(request.getHomeTown());
+        if (request.getIssuedDate() != null) account.setIssuedDate(request.getIssuedDate());
+        if (request.getIssuedBy() != null) account.setIssuedBy(request.getIssuedBy());
+        if (request.getImgUrl() != null) account.setImgUrl(request.getImgUrl());
+        if (request.getStatus() != null) account.setStatus(request.getStatus());
+
+        account.setUpdatedDate(java.time.LocalDateTime.now());
+        userRepository.save(account);
+    }
+
+    @Override
     public AccountResponse findByUsernameResponse(String username) {
         Account account = userRepository.findByUsername(username)
                 .orElseThrow(UserNotFoundException::new);
@@ -161,6 +186,16 @@ public class AccountService implements IAccountService {
         return userRepository.findAll().stream()
             .map(UserMapper::toAccountResponse)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<AccountResponse> getAllAccounts(Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserMapper::toAccountResponse);
+    }
+
+    @Override
+    public long getAccountsCount() {
+        return userRepository.count();
     }
 
     @Override

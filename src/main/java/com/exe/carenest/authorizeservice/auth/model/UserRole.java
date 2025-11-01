@@ -20,7 +20,7 @@ public class UserRole {
     private int id;
     private String name;
 
-    public UserRole(String name) {
+    public UserRole(String name){
         this.name = name;
     }
 }

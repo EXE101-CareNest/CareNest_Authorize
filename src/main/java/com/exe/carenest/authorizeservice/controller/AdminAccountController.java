@@ -1,12 +1,14 @@
 package com.exe.carenest.authorizeservice.controller;
 
+import com.exe.carenest.authorizeservice.dto.request.UpdateAccountRequest;
 import com.exe.carenest.authorizeservice.dto.response.AccountResponse;
 import com.exe.carenest.authorizeservice.service.IAccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/accounts")
@@ -21,8 +23,15 @@ public class AdminAccountController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public List<AccountResponse> getAllAccounts() {
-        return accountService.getAllAccounts();
+    public Page<AccountResponse> getAllAccounts(@RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "0") int page, @RequestParam(required = false) String search) {
+        Pageable pageable = PageRequest.of(page, size);
+        return accountService.getAllAccounts(pageable);
+    }
+
+    @GetMapping("/count")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public long getAccountsCount() {
+        return accountService.getAccountsCount();
     }
 
     @GetMapping("/{id}")
@@ -30,6 +39,8 @@ public class AdminAccountController {
     public AccountResponse getAccountById(@PathVariable String id) {
         return accountService.findById(id);
     }
+
+ 
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
