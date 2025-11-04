@@ -21,7 +21,7 @@ spring:
         format_sql: true
   mail:
     host: smtp-relay.brevo.com
-    port: 587
+    port: 2525
     username: 9a7341001@smtp-brevo.com
     password: xsmtpsib-2a6defc26fa374b89e76a410a339bede43328da3b95c8b4781465293c1c21074-f0sf28sWH10j2S7z
     default-encoding: ISO-8859-13
