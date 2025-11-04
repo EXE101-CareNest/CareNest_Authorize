@@ -11,6 +11,7 @@ import com.exe.carenest.authorizeservice.ultil.CryptoHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -88,13 +89,17 @@ public class OTPService {
 
 
     // Trong OTPService
+    @Transactional
     public String sendOtp(String email, OTP_Purpose purpose) {
         try {
             String otpCode = helper.generateOtp(); // "123456"
 
-            String templateHtml = emailService.getTemplate(purpose,email,otpCode);
-            emailService.sendCustomEmail(email, getSubject(purpose),templateHtml);
-
+//            String templateHtml = emailService.getTemplate(purpose,email,otpCode);
+            if(purpose == OTP_Purpose.FORGET_PASSWORD) {
+                emailService.sendPasswordResetOTP(email, otpCode);
+            } else if (purpose == OTP_Purpose.REGISTER) {
+                emailService.sendRegistrationOTP(email, otpCode);
+            }
             return generateAndSaveOTPToken(email, otpCode);
         } catch (Exception e) {
             if (e instanceof OTPException) {

@@ -28,6 +28,8 @@ public interface IAccountService {
 
     boolean deleteAccount(String accountId);
 
+    void hardDeleteAccount(String accountId);
+
     List<AccountResponse> getAllAccounts(); // For admin hehe, oke ?
 
     Page<AccountResponse> getAllAccounts(Pageable pageable);

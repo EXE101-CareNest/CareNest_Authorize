@@ -19,6 +19,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: ${BERVO_MAIL_USERNAME:9a7341001@smtp-brevo.com}
+    password: ${BERVO_MAIL_PASSWORD:xsmtpsib-2a6defc26fa374b89e76a410a339bede43328da3b95c8b4781465293c1c21074-f0sf28sWH10j2S7z}
+    default-encoding: ISO-8859-13
+    protocol: smtp
+
+
+
   data:
     redis:
       host: ${SPRING_REDIS_HOST:redis-16915.crce178.ap-east-1-1.ec2.redns.redis-cloud.com}
@@ -34,9 +44,10 @@ spring:
           min-idle: 0
           max-wait: 2000
 
+
 brevo:
   api:
-    key: ${BREVO_API_KEY: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}
+    key: ${BREVO_API_KEY:xsmtpsib-2a6defc26fa374b89e76a410a339bede43328da3b95c8b4781465293c1c21074-uFAj7vo2j7nYqMeI}
     url: https://api.brevo.com/v3/smtp/email
     sender:
       email: ${BREVO_SENDER_EMAIL:noreply@carenest.com}  # Email verified trong Brevo

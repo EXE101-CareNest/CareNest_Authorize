@@ -5,122 +5,80 @@ import com.exe.carenest.authorizeservice.exception.OTPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
-    @Value("${brevo.api.key}")
-    private String apiKey;
+    private final JavaMailSender mailSender;
 
-    @Value("${brevo.api.url}")
-    private String apiUrl;
-
-    @Value("${brevo.api.sender.email}")
+    @Value("${spring.mail.username}")
     private String senderEmail;
 
-    @Value("${brevo.api.sender.name}")
+    @Value("${spring.mail.from.name:Care Nest}")
     private String senderName;
-
-    private final RestTemplate restTemplate;
 
     /**
      * Send password reset OTP email
      */
     public void sendPasswordResetOTP(String toEmail, String otpCode) {
-        Map<String, Object> body = createEmailBody(
-                toEmail,
-                "Mã OTP đặt lại mật khẩu - Care Nest",
-                createPasswordResetHtmlContent(toEmail, otpCode)
-        );
-
-        sendEmail(body, "password reset OTP");
+        String subject = "Mã OTP đặt lại mật khẩu - Care Nest";
+        String htmlContent = createPasswordResetHtmlContent(toEmail, otpCode);
+        sendEmail(toEmail, subject, htmlContent, "password reset OTP");
     }
 
     /**
      * Send registration verification OTP email
      */
     public void sendRegistrationOTP(String toEmail, String otpCode) {
-        Map<String, Object> body = createEmailBody(
-                toEmail,
-                "Xác thực email đăng ký - Care Nest",
-                createRegistrationHtmlContent(toEmail, otpCode)
-        );
-
-        sendEmail(body, "registration OTP");
+        String subject = "Xác thực email đăng ký - Care Nest";
+        String htmlContent = createRegistrationHtmlContent(toEmail, otpCode);
+        sendEmail(toEmail, subject, htmlContent, "registration OTP");
     }
 
     /**
      * Generic method to send any email
      */
     public void sendCustomEmail(String toEmail, String subject, String htmlContent) {
-        Map<String, Object> body = createEmailBody(toEmail, subject, htmlContent);
-        sendEmail(body, "custom email");
+        sendEmail(toEmail, subject, htmlContent, "custom email");
     }
 
     /**
-     * Create common email body structure
+     * Send email via SMTP
      */
-    private Map<String, Object> createEmailBody(String toEmail, String subject, String htmlContent) {
-        Map<String, Object> body = new HashMap<>();
-
-        // Sender info - sử dụng từ config
-        Map<String, String> sender = Map.of(
-                "name", senderName,
-                "email", senderEmail
-        );
-
-        // Recipient info
-        Map<String, String> to = Map.of(
-                "email", toEmail,
-                "name", toEmail
-        );
-
-        body.put("sender", sender);
-        body.put("to", List.of(to));
-        body.put("subject", subject);
-        body.put("htmlContent", htmlContent);
-
-        return body;
-    }
-
-    /**
-     * Send email via Brevo API
-     */
-    private void sendEmail(Map<String, Object> body, String emailType) {
+    private void sendEmail(String toEmail, String subject, String htmlContent, String emailType) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("api-key", apiKey);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            // Set sender
+            helper.setFrom("ittrunghoang3715@gmail.com", senderName);
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    apiUrl,
-                    HttpMethod.POST,
-                    entity,
-                    String.class
-            );
+            // Set recipient
+            helper.setTo(toEmail);
 
-            if (response.getStatusCode() != HttpStatus.OK &&
-                    response.getStatusCode() != HttpStatus.CREATED) {
-                throw new OTPException("Không thể gửi email " + emailType + ". Vui lòng thử lại sau");
-            }
+            // Set subject
+            helper.setSubject(subject);
 
-            log.info("Email {} sent successfully", emailType);
+            // Set HTML content
+            helper.setText(htmlContent, true);
 
+            // Send email
+            mailSender.send(message);
+
+            log.info("Email {} sent successfully to: {}", emailType, toEmail);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send email {} to {}: {}", emailType, toEmail, e.getMessage(), e);
+            throw new OTPException("Lỗi hệ thống khi gửi email " + emailType + ": " + e.getMessage());
         } catch (Exception e) {
-            if (e instanceof OTPException) {
-                throw e;
-            }
             log.error("Failed to send email {}: {}", emailType, e.getMessage());
             throw new OTPException("Lỗi hệ thống khi gửi email " + emailType + ": " + e.getMessage());
         }
@@ -129,6 +87,7 @@ public class EmailService {
     /**
      * Get email template based on purpose
      *
+     * @param otpPurpose OTP purpose (REGISTER or FORGET_PASSWORD)
      * @param toEmail recipient email
      * @param otpCode OTP code to display
      * @return HTML content for email
@@ -204,5 +163,4 @@ public class EmailService {
                 "</body>" +
                 "</html>";
     }
-
 }
