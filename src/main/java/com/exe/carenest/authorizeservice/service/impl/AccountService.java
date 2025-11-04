@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ public class AccountService implements IAccountService {
     private final JwtProvider jwtProvider;
 
     @Override
+    @Transactional
     public void createAccount(RegisterRequest registerRequest, String roleName) {
         // Null check for safety
         if (registerRequest == null || registerRequest.password() == null || registerRequest.reEnterPassword() == null) {
@@ -179,6 +181,14 @@ public class AccountService implements IAccountService {
         account.set_active(false);
         userRepository.save(account);
         return true;
+    }
+
+    @Override
+    public void hardDeleteAccount(String accountId) {
+        if (!userRepository.existsById(accountId)) {
+            throw new UserNotFoundException();
+        }
+        userRepository.deleteById(accountId);
     }
 
     @Override

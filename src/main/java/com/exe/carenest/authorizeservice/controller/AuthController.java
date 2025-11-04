@@ -299,4 +299,10 @@ public class AuthController {
         return accountService.getMe();
     }
 
+    @DeleteMapping("/delete/{id}")
+    @Operation(summary = "Hard delete user by ID")
+    public void hardDeleteUser(@PathVariable String id) {
+        accountService.hardDeleteAccount(id);
+    }
+
 }
