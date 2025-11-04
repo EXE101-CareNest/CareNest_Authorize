@@ -2,28 +2,27 @@ package com.exe.carenest.authorizeservice.service;
 
 import com.exe.carenest.authorizeservice.data.OTP_Purpose;
 import com.exe.carenest.authorizeservice.exception.OTPException;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.SendEmailRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${resend.api.key}")
+    private String resendApiKey;
 
-    @Value("${spring.mail.username}")
-    private String senderEmail;
+    @Value("${resend.api.from-email}")
+    private String fromEmail;
 
-    @Value("${spring.mail.from.name:Care Nest}")
-    private String senderName;
+    @Value("${resend.api.from-name}")
+    private String fromName;
 
     /**
      * Send password reset OTP email
@@ -51,31 +50,24 @@ public class EmailService {
     }
 
     /**
-     * Send email via SMTP
+     * Send email via Resend API
      */
     private void sendEmail(String toEmail, String subject, String htmlContent, String emailType) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Resend resend = new Resend(resendApiKey);
 
-            // Set sender
-            helper.setFrom("ittrunghoang3715@gmail.com", senderName);
+            SendEmailRequest sendEmailRequest = SendEmailRequest.builder()
+                    .from(fromName + " <" + fromEmail + ">")
+                    .to(toEmail)
+                    .subject(subject)
+                    .html(htmlContent)
+                    .build();
 
-            // Set recipient
-            helper.setTo(toEmail);
+            var data = resend.emails().send(sendEmailRequest);
 
-            // Set subject
-            helper.setSubject(subject);
+            log.info("Email {} sent successfully to: {} with ID: {}", emailType, toEmail, data.getId());
 
-            // Set HTML content
-            helper.setText(htmlContent, true);
-
-            // Send email
-            mailSender.send(message);
-
-            log.info("Email {} sent successfully to: {}", emailType, toEmail);
-
-        } catch (MessagingException e) {
+        } catch (ResendException e) {
             log.error("Failed to send email {} to {}: {}", emailType, toEmail, e.getMessage(), e);
             throw new OTPException("Lỗi hệ thống khi gửi email " + emailType + ": " + e.getMessage());
         } catch (Exception e) {

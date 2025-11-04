@@ -19,13 +19,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-  mail:
-    host: smtp-relay.brevo.com
-    port: 2525
-    username: 9a7341001@smtp-brevo.com
-    password: xsmtpsib-2a6defc26fa374b89e76a410a339bede43328da3b95c8b4781465293c1c21074-f0sf28sWH10j2S7z
-    default-encoding: ISO-8859-13
-    protocol: smtp
 
 
 
@@ -45,13 +38,11 @@ spring:
           max-wait: 2000
 
 
-brevo:
+resend:
   api:
-    key: ${BREVO_API_KEY:xsmtpsib-2a6defc26fa374b89e76a410a339bede43328da3b95c8b4781465293c1c21074-uFAj7vo2j7nYqMeI}
-    url: https://api.brevo.com/v3/smtp/email
-    sender:
-      email: ${BREVO_SENDER_EMAIL:noreply@carenest.com}  # Email verified trong Brevo
-      name: ${BREVO_SENDER_NAME:Care Nest Support}
+    key: ${RESEND_API_KEY:re_gmGazWTr_KLrJaQVoAQxSWUP4eVqRMrnY}
+    from-email: ${RESEND_FROM_EMAIL:noreply@otp.devnest.io.vn}
+    from-name: ${RESEND_FROM_NAME:Care Nest}
 
 jwt:
   secret: CA39C3A2A3D4654A764C8E724CB37114CF68D80A34057F06641A31E0A0A3BA86
