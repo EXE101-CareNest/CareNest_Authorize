@@ -12,9 +12,9 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://192.168.0.59:5432/exe_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=HoiLamChi123@
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://cbt118e6h2ekj2.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dqfsb4tvidjit
+      - SPRING_DATASOURCE_USERNAME=ud1hq49h2ce600
+      - SPRING_DATASOURCE_PASSWORD=p25c85fe262a4ff6c0759177d20d0339fc72043ed122dffb53c1742b638e0b5aa
 
       # Redis configuration
       - SPRING_REDIS_HOST=redis-16915.crce178.ap-east-1-1.ec2.redns.redis-cloud.com
